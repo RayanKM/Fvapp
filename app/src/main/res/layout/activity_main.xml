@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".MainActivity">
+
+    <FrameLayout
+        android:id="@+id/mn"
+        android:layout_marginBottom="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        tools:layout_editor_absoluteX="0dp"
+        app:layout_constraintTop_toBottomOf="@id/mn"
+        android:elevation="15dp"
+        app:cardElevation="15dp"
+        android:layout_height="50dp">
+        <com.ismaeldivita.chipnavigation.ChipNavigationBar
+            android:id="@+id/Navbt"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:cnb_menuResource="@menu/nav"
+            android:background="@color/white"
+            app:cnb_unselectedColor="#72000000"
+            tools:layout_editor_absoluteX="0dp"
+            tools:ignore="MissingClass,MissingConstraints" />
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

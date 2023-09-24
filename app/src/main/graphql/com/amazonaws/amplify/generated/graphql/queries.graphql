@@ -1,0 +1,167 @@
+# this is an auto generated file. This will be overwritten
+
+query GetUsr($id: ID!) {
+  getUsr(id: $id) {
+    id
+    username
+    fullname
+    email
+    pfp
+    bio
+    followers
+    following
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+query ListUsrs($filter: ModelUsrFilterInput, $limit: Int, $nextToken: String) {
+  listUsrs(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      username
+      fullname
+      email
+      pfp
+      bio
+      followers
+      following
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+
+query GetFollowRequest($id: ID!) {
+  getFollowRequest(id: $id) {
+    id
+    fromUser
+    toUser
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+query ListFollowRequests(
+  $filter: ModelFollowRequestFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listFollowRequests(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      fromUser
+      toUser
+      status
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+
+query GetPost($id: ID!) {
+  getPost(id: $id) {
+    id
+    content
+    author
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+query ListPosts(
+  $filter: ModelPostFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listPosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      content
+      author
+      media
+      typ
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+
+query GetLike($id: ID!) {
+  getLike(id: $id) {
+    id
+    username
+    postID
+    to
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+query ListLikes(
+  $filter: ModelLikeFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listLikes(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      username
+      postID
+      to
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+
+query GetComment($id: ID!) {
+  getComment(id: $id) {
+    id
+    author
+    postID
+    content
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+query ListComments(
+  $filter: ModelCommentFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listComments(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      author
+      postID
+      content
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}

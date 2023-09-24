@@ -1,0 +1,55 @@
+type Usr @model @auth(rules: [
+  { allow: public, provider: apiKey, operations: [create, read, update, delete] }
+]) {
+  id: ID!
+  username: String!
+  fullname: String!
+  email: String!
+  pfp: String
+  bio: String
+  followers: [String]
+  following: [String]
+}
+
+type FollowRequest @model @auth(rules: [
+  { allow: public, provider: apiKey, operations: [create, read, update, delete] }
+]) {
+  id: ID!
+  fromUser: String!
+  toUser: String!
+  status: FollowRequestStatus!
+}
+
+enum FollowRequestStatus{
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type Post @model @auth(rules: [
+  { allow: public, provider: apiKey, operations: [create, read, update, delete] }
+]) {
+  id: ID!
+  content: String!
+  author: String!
+  media: String
+  typ: String
+}
+
+type Like @model @auth(rules: [
+  { allow: public, provider: apiKey, operations: [create, read, update, delete] }
+]) {
+  id: ID!
+  username: String!
+  postID: String!
+  to: String!
+}
+
+type Comment @model @auth(rules: [
+  { allow: public, provider: apiKey, operations: [create, read, update, delete] }
+]) {
+  id: ID!
+  author: String!
+  postID: String!
+  content: String!
+}

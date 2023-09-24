@@ -1,0 +1,14 @@
+{
+  "resourceName": "Fanzverseapp",
+  "policyUUID": "1c5bfb02",
+  "bucketName": "media",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

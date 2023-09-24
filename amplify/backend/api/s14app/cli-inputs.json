@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "s14app",
+    "serviceName": "AppSync",
+    "defaultAuthType": {
+      "mode": "API_KEY",
+      "expirationTime": 365,
+      "apiKeyExpirationDate": "2024-09-17T22:15:03.247Z",
+      "keyDescription": "apiKey"
+    },
+    "conflictResolution": {},
+    "additionalAuthTypes": []
+  }
+}
