@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.os.Bundle
 import android.util.Log
@@ -13,7 +13,7 @@ import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.FollowRequest
 import com.amplifyframework.datastore.generated.model.FollowRequestStatus
 import com.amplifyframework.datastore.generated.model.Usr
-import com.example.fvapp.databinding.FragmentNotificationsBinding
+import com.fanzverse.fvapp.databinding.FragmentNotificationsBinding
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking

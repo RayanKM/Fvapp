@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -62,6 +62,7 @@ class HomeAdapter (private val context: Context, private val Post: MutableList<P
 
         holder.author.text = post.postAuthor
         holder.postcontent.text = post.postContent
+        holder.date.text = post.postDate
         holder.comments.text = "$commentNumbers Comments"
         holder.likes.text = "$likesNumbers Likes"
 
@@ -77,6 +78,9 @@ class HomeAdapter (private val context: Context, private val Post: MutableList<P
             val mediaItem = MediaItem.fromUri(post.postMedia)
             player?.setMediaItem(mediaItem)
             player?.prepare()
+        }else{
+            holder.media.visibility = View.GONE
+            holder.vid.visibility = View.GONE
         }
         if (post.postUser != ""){
             Glide.with(context)
@@ -96,6 +100,7 @@ class UserViewHolder(
     val media: ImageView = itemView.findViewById(R.id.main)
     val comments: TextView = itemView.findViewById(R.id.cmnts)
     val likes: TextView = itemView.findViewById(R.id.lks)
+    val date: TextView = itemView.findViewById(R.id.date)
     val likesbtn: ImageView = itemView.findViewById(R.id.btn_like)
     val img: ImageView = itemView.findViewById(R.id.postpfp)
     val vid: PlayerView = itemView.findViewById(R.id.playvid)

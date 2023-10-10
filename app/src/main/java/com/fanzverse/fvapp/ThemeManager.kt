@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate

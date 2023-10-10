@@ -29,19 +29,37 @@
             android:layout_width="match_parent"
             android:orientation="vertical"
             android:layout_height="match_parent">
-            <TextView
-                android:id="@+id/author"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Author Name"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginStart="8dp" />
+                android:orientation="horizontal">
+                <!-- Author Name -->
+                <TextView
+                    android:id="@+id/author"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp" />
+                <TextView
+                    android:id="@+id/date"
+                    android:gravity="end"
+                    android:layout_width="wrap_content"
+                    style="@style/TextViewStyle"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginEnd="8dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
             <TextView
                 android:id="@+id/content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="This is the post content. It can be a long text describing something interesting."
+                android:text=""
                 android:textSize="14sp"
                 android:layout_marginTop="8dp" />
         </LinearLayout>

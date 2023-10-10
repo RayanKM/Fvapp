@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import com.amplifyframework.core.Amplify
-import com.example.fvapp.databinding.ActivityLoginBinding
+import com.fanzverse.fvapp.databinding.ActivityLoginBinding
 import www.sanju.motiontoast.MotionToast
 import www.sanju.motiontoast.MotionToastStyle
 

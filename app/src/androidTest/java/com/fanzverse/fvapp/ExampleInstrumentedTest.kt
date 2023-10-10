@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

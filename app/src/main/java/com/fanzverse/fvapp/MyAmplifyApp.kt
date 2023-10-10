@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 import android.app.Application
 import android.util.Log
 import com.amplifyframework.AmplifyException

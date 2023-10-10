@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.content.Context
 import android.os.Bundle
@@ -17,12 +17,20 @@ import com.amplifyframework.datastore.generated.model.Like
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.Usr
 import com.bumptech.glide.Glide
-import com.example.fvapp.databinding.FragmentPostDetailBinding
+import com.fanzverse.fvapp.databinding.FragmentPostDetailBinding
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.instacart.library.truetime.TrueTime
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class PostDetail : Fragment(R.layout.fragment_post_detail) {
     private var player: SimpleExoPlayer? = null
@@ -89,32 +97,49 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
     }
 
     fun createComment(id:String, postid: String,comment : String){
-        hideKeyboard(binding.commentEditText)
-        val comment = Comment.builder()
-            .author(id)
-            .postId(postid)
-            .content(comment)
-            .build()
-        Amplify.API.mutate(
-            ModelMutation.create(comment),
-            { response ->
-                // This block is executed when the mutation is successful
-                Log.i("MyAmplifyApp", "Todo with id: ${response.data.id}")
+        GlobalScope.launch(Dispatchers.IO) {
+            TrueTime.build()
+                .initialize()
 
-                activity?.runOnUiThread {
-                    fetchComments(postid)
-                    // Notify the adapter that the data has changed
-                    binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
+            // Get the current UTC time from TrueTime
+            val currentUTCTimeMillis = TrueTime.now().time
+
+            // Create a SimpleDateFormat object with the desired format
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+
+            // Set the time zone to UTC
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+            // Format the current UTC time
+            val formattedUTCTime = dateFormat.format(Date(currentUTCTimeMillis))
+            hideKeyboard(binding.commentEditText)
+            val comment = Comment.builder()
+                .author(id)
+                .postId(postid)
+                .content(comment)
+                .createdAt(formattedUTCTime)
+                .build()
+            Amplify.API.mutate(
+                ModelMutation.create(comment),
+                { response ->
+                    // This block is executed when the mutation is successful
+                    Log.i("MyAmplifyApp", "Todo with id: ${response.data.id}")
+
+                    activity?.runOnUiThread {
+                        fetchComments(postid)
+                        // Notify the adapter that the data has changed
+                        binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
+                    }
+                    binding.commentEditText.text.clear()
+                    // Handle any other logic you need here for a successful mutation
+                },
+                { error ->
+                    // This block is executed when there's an error during the mutation
+                    Log.e("MyAmplifyApp", "Create failed", error)
+                    // Handle the error appropriately
                 }
-                binding.commentEditText.text.clear()
-                // Handle any other logic you need here for a successful mutation
-            },
-            { error ->
-                // This block is executed when there's an error during the mutation
-                Log.e("MyAmplifyApp", "Create failed", error)
-                // Handle the error appropriately
-            }
-        )
+            )
+        }
     }
     private fun fetchComments(postId:String){
         comments.clear()
@@ -122,7 +147,8 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
         Amplify.API.query(
             ModelQuery.list(Comment::class.java, Comment.POST_ID.contains(postId)),
             { commentResponse ->
-                commentResponse.data.forEach { comm ->
+                val sortedComments = commentResponse.data.sortedByDescending { it.createdAt }
+                sortedComments.forEach { comm ->
                     comment.add(comm)
                     runBlocking {
                         val pf = async { getPfp(comm.author) }

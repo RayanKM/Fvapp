@@ -29,11 +29,13 @@ public final class Post implements Model {
   public static final QueryField AUTHOR = field("Post", "author");
   public static final QueryField MEDIA = field("Post", "media");
   public static final QueryField TYP = field("Post", "typ");
+  public static final QueryField CREATED_AT = field("Post", "createdAt");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String", isRequired = true) String content;
   private final @ModelField(targetType="String", isRequired = true) String author;
   private final @ModelField(targetType="String") String media;
   private final @ModelField(targetType="String") String typ;
+  private final @ModelField(targetType="String") String createdAt;
   public String getId() {
       return id;
   }
@@ -54,12 +56,17 @@ public final class Post implements Model {
       return typ;
   }
   
-  private Post(String id, String content, String author, String media, String typ) {
+  public String getCreatedAt() {
+      return createdAt;
+  }
+  
+  private Post(String id, String content, String author, String media, String typ, String createdAt) {
     this.id = id;
     this.content = content;
     this.author = author;
     this.media = media;
     this.typ = typ;
+    this.createdAt = createdAt;
   }
   
   @Override
@@ -74,7 +81,8 @@ public final class Post implements Model {
               ObjectsCompat.equals(getContent(), post.getContent()) &&
               ObjectsCompat.equals(getAuthor(), post.getAuthor()) &&
               ObjectsCompat.equals(getMedia(), post.getMedia()) &&
-              ObjectsCompat.equals(getTyp(), post.getTyp());
+              ObjectsCompat.equals(getTyp(), post.getTyp()) &&
+              ObjectsCompat.equals(getCreatedAt(), post.getCreatedAt());
       }
   }
   
@@ -86,6 +94,7 @@ public final class Post implements Model {
       .append(getAuthor())
       .append(getMedia())
       .append(getTyp())
+      .append(getCreatedAt())
       .toString()
       .hashCode();
   }
@@ -98,7 +107,8 @@ public final class Post implements Model {
       .append("content=" + String.valueOf(getContent()) + ", ")
       .append("author=" + String.valueOf(getAuthor()) + ", ")
       .append("media=" + String.valueOf(getMedia()) + ", ")
-      .append("typ=" + String.valueOf(getTyp()))
+      .append("typ=" + String.valueOf(getTyp()) + ", ")
+      .append("createdAt=" + String.valueOf(getCreatedAt()))
       .append("}")
       .toString();
   }
@@ -121,6 +131,7 @@ public final class Post implements Model {
       null,
       null,
       null,
+      null,
       null
     );
   }
@@ -130,7 +141,8 @@ public final class Post implements Model {
       content,
       author,
       media,
-      typ);
+      typ,
+      createdAt);
   }
   public interface ContentStep {
     AuthorStep content(String content);
@@ -147,6 +159,7 @@ public final class Post implements Model {
     BuildStep id(String id);
     BuildStep media(String media);
     BuildStep typ(String typ);
+    BuildStep createdAt(String createdAt);
   }
   
 
@@ -156,6 +169,7 @@ public final class Post implements Model {
     private String author;
     private String media;
     private String typ;
+    private String createdAt;
     @Override
      public Post build() {
         String id = this.id != null ? this.id : UUID.randomUUID().toString();
@@ -165,7 +179,8 @@ public final class Post implements Model {
           content,
           author,
           media,
-          typ);
+          typ,
+          createdAt);
     }
     
     @Override
@@ -194,6 +209,12 @@ public final class Post implements Model {
         return this;
     }
     
+    @Override
+     public BuildStep createdAt(String createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+    
     /**
      * @param id id
      * @return Current Builder instance, for fluent method chaining
@@ -206,12 +227,13 @@ public final class Post implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String content, String author, String media, String typ) {
+    private CopyOfBuilder(String id, String content, String author, String media, String typ, String createdAt) {
       super.id(id);
       super.content(content)
         .author(author)
         .media(media)
-        .typ(typ);
+        .typ(typ)
+        .createdAt(createdAt);
     }
     
     @Override
@@ -232,6 +254,11 @@ public final class Post implements Model {
     @Override
      public CopyOfBuilder typ(String typ) {
       return (CopyOfBuilder) super.typ(typ);
+    }
+    
+    @Override
+     public CopyOfBuilder createdAt(String createdAt) {
+      return (CopyOfBuilder) super.createdAt(createdAt);
     }
   }
   

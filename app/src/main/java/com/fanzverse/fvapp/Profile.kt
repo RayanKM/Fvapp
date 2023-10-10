@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.animation.ValueAnimator
 import android.app.Activity
@@ -29,8 +29,8 @@ import com.amplifyframework.datastore.generated.model.Like
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.Usr
 import com.bumptech.glide.Glide
-import com.example.fvapp.databinding.EditbioBinding
-import com.example.fvapp.databinding.FragmentProfileBinding
+import com.fanzverse.fvapp.databinding.EditbioBinding
+import com.fanzverse.fvapp.databinding.FragmentProfileBinding
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.CompletableDeferred
@@ -41,8 +41,10 @@ import www.sanju.motiontoast.MotionToastStyle
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 
 class Profile : Fragment(R.layout.fragment_profile) {
@@ -69,6 +71,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
         super.onViewCreated(view, savedInstanceState)
         binding.ppgfp.clipToOutline = true
 
+
         // Initialize the switch based on the user's preference
         val sharedPreferences = requireActivity().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         binding.switchDarkMode.isChecked = sharedPreferences.getBoolean("dark_mode_enabled", false)
@@ -78,6 +81,8 @@ class Profile : Fragment(R.layout.fragment_profile) {
         val bottomSheetBehavior = BottomSheetBehavior.from(binding.sheet2)
         bottomSheetBehavior.peekHeight = 0
         bottomSheetBehavior.isDraggable = false
+        fetch("daks")
+
         communicator = activity as Communicator
         var post: String? = arguments?.getString("id")
         binding.down.setOnClickListener {
@@ -224,9 +229,11 @@ class Profile : Fragment(R.layout.fragment_profile) {
     }
 
     fun fetch(id: String) {
+        Log.e("azzzz", "fetch $id")
         Amplify.API.query(
             ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
             { postResponse ->
+                Log.e("azzzz", "respo")
                 postResponse.data.forEach { post ->
                     binding.tag.text = "@${post.username}"
                     binding.author.text = post.fullname
@@ -288,25 +295,32 @@ class Profile : Fragment(R.layout.fragment_profile) {
         Amplify.API.query(
             ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id)),
             { postResponse ->
-                postResponse?.data?.forEach { post ->
+                val sortedPosts = postResponse?.data?.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
+
+                sortedPosts?.forEach { post ->
                     val postId = post.id
                     val postAuthor = post.author
                     val postContent = post.content
                     val postType = post.typ
+                    val postDate = post.createdAt
+                    val timeAgo = calculateTimeAgo(postDate)
                     val postMedia: String = post.media ?: ""
                     var pfp = ""
                     runBlocking {
-
                         val cm = async { cmt(postId) }
                         val lk = async { lks(postId) }
                         val pf = async { getPfp(id) }
 
                         // Create a PostWithComments object and add it to the list
                         val postWithComments =
-                            PosDataModel(postContent, postAuthor, postId, postMedia,pf.await(),postType, cm.await(), lk.await())
+                            PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await())
                         Log.e("qsfqdqdqqdq", "qsdqre3 ${pfp}")
                         postListWithComments.add(postWithComments)
                     }
+                }
+                activity?.runOnUiThread {
+                    // Notify the adapter that the data has changed
+                    binding.mainRecyclerview.adapter?.notifyDataSetChanged()
                 }
             },
             { postError ->
@@ -457,7 +471,6 @@ class Profile : Fragment(R.layout.fragment_profile) {
 
         return deferred.await() // Suspend until the deferred is completed and return the pfp
     }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
@@ -523,6 +536,29 @@ class Profile : Fragment(R.layout.fragment_profile) {
             Toast.makeText(activity, ImagePicker.getError(data), Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(activity, "Task Cancelled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun calculateTimeAgo(createdAt: String): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        val currentDate = Calendar.getInstance().time
+        val postDate = sdf.parse(createdAt)
+        val timeDifferenceMillis = Math.abs(currentDate.time - postDate.time)
+
+        val minuteMillis: Long = 60 * 1000
+        val hourMillis: Long = 60 * minuteMillis
+        val dayMillis: Long = 24 * hourMillis
+        val weekMillis: Long = 7 * dayMillis
+        val monthMillis: Long = 30 * dayMillis
+
+        return when {
+            timeDifferenceMillis < minuteMillis -> "${timeDifferenceMillis / 1000} secs ago"
+            timeDifferenceMillis < hourMillis -> "${timeDifferenceMillis / minuteMillis} mins ago"
+            timeDifferenceMillis < dayMillis -> "${timeDifferenceMillis / hourMillis} hours ago"
+            timeDifferenceMillis < weekMillis -> "${timeDifferenceMillis / dayMillis} days ago"
+            timeDifferenceMillis < monthMillis -> "${timeDifferenceMillis / weekMillis} weeks ago"
+            else -> "${timeDifferenceMillis / monthMillis} months ago"
         }
     }
 

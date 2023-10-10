@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.amplifyframework.auth.options.AuthSignOutOptions
 import com.amplifyframework.core.Amplify
-import com.example.fvapp.databinding.ActivityMainBinding
+import com.fanzverse.fvapp.databinding.ActivityMainBinding
 
 // Import other query classes as needed
 

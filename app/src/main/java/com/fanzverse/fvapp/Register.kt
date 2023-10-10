@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,7 +12,7 @@ import com.amplifyframework.auth.AuthUserAttributeKey
 import com.amplifyframework.auth.options.AuthSignUpOptions
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Usr
-import com.example.fvapp.databinding.ActivityRegisterBinding
+import com.fanzverse.fvapp.databinding.ActivityRegisterBinding
 import www.sanju.motiontoast.MotionToast
 import www.sanju.motiontoast.MotionToastStyle
 

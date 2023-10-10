@@ -6,16 +6,15 @@ plugins {
 }
 
 android {
-    namespace = "com.example.fvapp"
+    namespace = "com.fanzverse.fvapp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.fvapp"
+        applicationId = "com.fanzverse.fvapp"
         minSdk = 24
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -82,4 +81,8 @@ dependencies {
 
 
     implementation ("com.github.dhaval2404:imagepicker:2.1")
+
+    //Time
+    implementation ("com.github.instacart.truetime-android:library-extension-rx:3.4")
+    implementation ("com.github.instacart.truetime-android:library:3.4")
 }

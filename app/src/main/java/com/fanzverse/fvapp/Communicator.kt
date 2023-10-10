@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 interface Communicator {
     fun passdata(post : PosDataModel)

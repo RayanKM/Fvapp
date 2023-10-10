@@ -12,7 +12,7 @@
         android:padding="16dp"
         android:orientation="vertical">
         <!-- Author Information -->
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -34,10 +34,23 @@
                 style="@style/TextViewStyle"
                 android:layout_height="wrap_content"
                 android:text=""
+                app:layout_constraintLeft_toRightOf="@id/postpfp"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginStart="8dp" />
-        </LinearLayout>
+            <TextView
+                android:id="@+id/date"
+                android:gravity="end"
+                android:layout_width="wrap_content"
+                style="@style/TextViewStyle"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginEnd="8dp" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- Post Content -->
         <TextView

@@ -1,4 +1,4 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.os.Bundle
 import android.util.Log
@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.Usr
-import com.example.fvapp.databinding.FragmentSearchProfileBinding
+import com.fanzverse.fvapp.databinding.FragmentSearchProfileBinding
 
 
 class SearchProfile : Fragment(R.layout.fragment_search_profile) {

@@ -34,6 +34,7 @@ type Post @model @auth(rules: [
   author: String!
   media: String
   typ: String
+  createdAt: String
 }
 
 type Like @model @auth(rules: [
@@ -52,4 +53,5 @@ type Comment @model @auth(rules: [
   author: String!
   postID: String!
   content: String!
+  createdAt: String
 }

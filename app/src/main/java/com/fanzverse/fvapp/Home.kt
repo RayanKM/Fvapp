@@ -1,7 +1,8 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -9,6 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
@@ -26,11 +28,14 @@ import com.amplifyframework.datastore.generated.model.Comment
 import com.amplifyframework.datastore.generated.model.Like
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.Usr
-import com.example.fvapp.databinding.FragmentHomeBinding
+import com.fanzverse.fvapp.databinding.FragmentHomeBinding
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.instacart.library.truetime.TrueTime
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -38,9 +43,12 @@ import www.sanju.motiontoast.MotionToast
 import www.sanju.motiontoast.MotionToastStyle
 import java.io.File
 import java.io.FileOutputStream
+import java.lang.Math.abs
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 class Home : Fragment(R.layout.fragment_home) {
     private var player: SimpleExoPlayer? = null
@@ -121,8 +129,10 @@ class Home : Fragment(R.layout.fragment_home) {
             adapter = HomeAdapter(requireContext(), postListWithComments).apply {
                 setOnItemClickListener(object : HomeAdapter.onItemClickListener {
                     override fun onItemClick(position: Int) {
-                        Log.i("MyAmplifyApp", "CLICKED")
+                        Log.i("MyAmplifyApp2", "CLICKED")
+
                         val post = postListWithComments[position]
+                        Log.i("MyAmplifyApp2", "${post.postDate}")
                         communicator.passdata(post)
                     }
 
@@ -163,30 +173,38 @@ class Home : Fragment(R.layout.fragment_home) {
 
         }
     }
+
     fun fetch(id: String) {
         Amplify.API.query(
             ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id)),
             { postResponse ->
-                postResponse.data.forEach { post ->
+                Log.e("MyAmplifyApp", "yesssssss2222")
+                val sortedPosts = postResponse.data.sortedByDescending { it.createdAt }
+
+                sortedPosts.forEach { post ->
                     val postId = post.id
                     val postAuthor = post.author
                     val postContent = post.content
                     val postType = post.typ
+                    val postDate = post.createdAt
+                    val timeAgo = calculateTimeAgo(postDate)
                     val postMedia: String = post.media ?: ""
+                    Log.e("MyAmplifyApp", "$postContent")
+
 
                     runBlocking {
                         val cm = async { cmt(postId) }
                         val lk = async { lks(postId) }
                         val pf = async { getPfp(id) }
-                        // Create a PostWithComments object and add it to the list
-                        val postWithComments =
-                            PosDataModel(postContent, postAuthor, postId, postMedia,pf.await(),postType, cm.await(), lk.await())
+
+                        val postWithComments = PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await())
                         postListWithComments.add(postWithComments)
                     }
-                    activity?.runOnUiThread {
-                        // Notify the adapter that the data has changed
-                        binding.mainRecyclerview.adapter?.notifyDataSetChanged()
-                    }
+                }
+
+                activity?.runOnUiThread {
+                    // Notify the adapter that the data has changed
+                    binding.mainRecyclerview.adapter?.notifyDataSetChanged()
                 }
             },
             { postError ->
@@ -194,15 +212,19 @@ class Home : Fragment(R.layout.fragment_home) {
             }
         )
     }
+
+
     fun fetchPosts(id: String) {
         Amplify.API.query(
             ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
             { response ->
+                Log.e("MyAmplifyApp", "yesssssss")
                 response.data.forEach { existingUser ->
                     if (existingUser.following != null) {
                         val following = existingUser.following
                         for (i in following) {
                             fetch(i)
+                            Log.e("MyAmplifyApp", "$i")
                         }
                     } else {
                     }
@@ -232,55 +254,77 @@ class Home : Fragment(R.layout.fragment_home) {
         )
     }
     fun createPost(username: String, content: String, typ:String) {
-        Amplify.API.query(
-            ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(username)),
-            { postResponse ->
-                postResponse.data.forEach { post ->
-                    val post = Post.builder()
-                        .content(content)
-                        .author(username)
-                        .media("https://media172200-yandev.s3.ap-south-1.amazonaws.com/$downloadUri")
-                        .typ(typ)
-                        .build()
-                    Amplify.API.mutate(
-                        ModelMutation.create(post),
-                        { response ->
-                            Log.e("MyAmplifyApp", "${response.data.id}",)
-                            // This block is executed when the mutation is successful
-                            activity?.runOnUiThread {
-                                binding.posttext.text.clear()
-                                downloadUri = ""
-                                tp = ""
-                                videoUrlLiveData.value = ""
-                                binding.playerView.visibility = View.GONE
-                                binding.main.visibility = View.GONE
-                                MotionToast.createColorToast(
-                                    requireActivity(),
-                                    "Post created Successfully",
-                                    "You can see it on your profile",
-                                    MotionToastStyle.SUCCESS,
-                                    MotionToast.GRAVITY_BOTTOM,
-                                    MotionToast.LONG_DURATION,
-                                    ResourcesCompat.getFont(
+        GlobalScope.launch(Dispatchers.IO) {
+            TrueTime.build()
+                .initialize()
+
+            // Get the current UTC time from TrueTime
+            val currentUTCTimeMillis = TrueTime.now().time
+
+            // Create a SimpleDateFormat object with the desired format
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+
+            // Set the time zone to UTC
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+            // Format the current UTC time
+            val formattedUTCTime = dateFormat.format(Date(currentUTCTimeMillis))
+
+            hideKeyboard(binding.posttext)
+            Amplify.API.query(
+                ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(username)),
+                { postResponse ->
+                    postResponse.data.forEach { post ->
+                        val post = Post.builder()
+                            .content(content)
+                            .author(username)
+                            .media("https://media172200-yandev.s3.ap-south-1.amazonaws.com/$downloadUri")
+                            .typ(typ)
+                            .createdAt(formattedUTCTime)
+                            .build()
+                        Amplify.API.mutate(
+                            ModelMutation.create(post),
+                            { response ->
+                                Log.e("MyAmplifyApp", "${response.data.id}",)
+                                // This block is executed when the mutation is successful
+                                activity?.runOnUiThread {
+                                    binding.posttext.text.clear()
+                                    downloadUri = ""
+                                    tp = ""
+                                    videoUrlLiveData.value = ""
+                                    binding.playerView.visibility = View.GONE
+                                    binding.main.visibility = View.GONE
+                                    MotionToast.createColorToast(
                                         requireActivity(),
-                                        www.sanju.motiontoast.R.font.helvetica_regular
+                                        "Post created Successfully",
+                                        "You can see it on your profile",
+                                        MotionToastStyle.SUCCESS,
+                                        MotionToast.GRAVITY_BOTTOM,
+                                        MotionToast.LONG_DURATION,
+                                        ResourcesCompat.getFont(
+                                            requireActivity(),
+                                            www.sanju.motiontoast.R.font.helvetica_regular
+                                        )
                                     )
-                                )
+                                }
+                                // Handle any other logic you need here for a successful mutation
+                            },
+                            { error ->
+                                // This block is executed when there's an error during the mutation
+                                Log.e("MyAmplifyApp", "Create failed", error)
+                                // Handle the error appropriately
                             }
-                            // Handle any other logic you need here for a successful mutation
-                        },
-                        { error ->
-                            // This block is executed when there's an error during the mutation
-                            Log.e("MyAmplifyApp", "Create failed", error)
-                            // Handle the error appropriately
-                        }
-                    )
+                        )
+                    }
+                },
+                { postError ->
+                    Log.e("MyAmplifyApp", "Query post failure", postError)
                 }
-            },
-            { postError ->
-                Log.e("MyAmplifyApp", "Query post failure", postError)
-            }
-        )
+            )
+            // Now you can use formattedUTCTime in your UI or perform other operations
+        }
+
+
     }
     override fun onDestroyView() {
         super.onDestroyView()
@@ -289,10 +333,13 @@ class Home : Fragment(R.layout.fragment_home) {
     private suspend fun cmt(postId: String): MutableList<Comment> {
         val comments = mutableListOf<Comment>()
         val deferred = CompletableDeferred<MutableList<Comment>>() // Create a CompletableDeferred
+        Log.e("sqdqds", "cmt", )
 
         Amplify.API.query(
             ModelQuery.list(Comment::class.java, Comment.POST_ID.contains(postId)),
             { commentResponse ->
+                Log.e("sqdqds", "ysmct", )
+
                 commentResponse.data.forEach { comment ->
                     comments.add(comment)
                 }
@@ -310,10 +357,13 @@ class Home : Fragment(R.layout.fragment_home) {
     private suspend fun lks(postId: String): MutableList<Like> {
         val likes = mutableListOf<Like>()
         val deferred = CompletableDeferred<MutableList<Like>>() // Create a CompletableDeferred
+        Log.e("sqdqds", "yesspsdt", )
 
         Amplify.API.query(
             ModelQuery.list(Like::class.java, Like.POST_ID.contains(postId)),
             { commentResponse ->
+                Log.e("sqdqds", "yesspsdt", )
+
                 commentResponse.data.forEach { comment ->
                     likes.add(comment)
                 }
@@ -331,10 +381,12 @@ class Home : Fragment(R.layout.fragment_home) {
     private suspend fun getPfp(id: String): String {
         var pfp = ""
         val deferred = CompletableDeferred<String>() // Create a CompletableDeferred
+        Log.e("sqdqds", "ysspf", )
 
         Amplify.API.query(
             ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
             { postResponse ->
+                Log.e("sqdqds", "yesssuse", )
                 postResponse.data.forEach { post ->
                     pfp = post.pfp ?: ""
                     // Resolve the deferred with the pfp once the query is done
@@ -403,5 +455,32 @@ class Home : Fragment(R.layout.fragment_home) {
         } else {
             Toast.makeText(activity, "Task Cancelled", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun calculateTimeAgo(createdAt: String): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        val currentDate = Calendar.getInstance().time
+        val postDate = sdf.parse(createdAt)
+        val timeDifferenceMillis = abs(currentDate.time - postDate.time)
+
+        val minuteMillis: Long = 60 * 1000
+        val hourMillis: Long = 60 * minuteMillis
+        val dayMillis: Long = 24 * hourMillis
+        val weekMillis: Long = 7 * dayMillis
+        val monthMillis: Long = 30 * dayMillis
+
+        return when {
+            timeDifferenceMillis < minuteMillis -> "${timeDifferenceMillis / 1000} secs ago"
+            timeDifferenceMillis < hourMillis -> "${timeDifferenceMillis / minuteMillis} mins ago"
+            timeDifferenceMillis < dayMillis -> "${timeDifferenceMillis / hourMillis} hours ago"
+            timeDifferenceMillis < weekMillis -> "${timeDifferenceMillis / dayMillis} days ago"
+            timeDifferenceMillis < monthMillis -> "${timeDifferenceMillis / weekMillis} weeks ago"
+            else -> "${timeDifferenceMillis / monthMillis} months ago"
+        }
+    }
+    fun hideKeyboard(view: View) {
+        val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 }

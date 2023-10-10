@@ -28,10 +28,12 @@ public final class Comment implements Model {
   public static final QueryField AUTHOR = field("Comment", "author");
   public static final QueryField POST_ID = field("Comment", "postID");
   public static final QueryField CONTENT = field("Comment", "content");
+  public static final QueryField CREATED_AT = field("Comment", "createdAt");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String", isRequired = true) String author;
   private final @ModelField(targetType="String", isRequired = true) String postID;
   private final @ModelField(targetType="String", isRequired = true) String content;
+  private final @ModelField(targetType="String") String createdAt;
   public String getId() {
       return id;
   }
@@ -48,11 +50,16 @@ public final class Comment implements Model {
       return content;
   }
   
-  private Comment(String id, String author, String postID, String content) {
+  public String getCreatedAt() {
+      return createdAt;
+  }
+  
+  private Comment(String id, String author, String postID, String content, String createdAt) {
     this.id = id;
     this.author = author;
     this.postID = postID;
     this.content = content;
+    this.createdAt = createdAt;
   }
   
   @Override
@@ -66,7 +73,8 @@ public final class Comment implements Model {
       return ObjectsCompat.equals(getId(), comment.getId()) &&
               ObjectsCompat.equals(getAuthor(), comment.getAuthor()) &&
               ObjectsCompat.equals(getPostId(), comment.getPostId()) &&
-              ObjectsCompat.equals(getContent(), comment.getContent());
+              ObjectsCompat.equals(getContent(), comment.getContent()) &&
+              ObjectsCompat.equals(getCreatedAt(), comment.getCreatedAt());
       }
   }
   
@@ -77,6 +85,7 @@ public final class Comment implements Model {
       .append(getAuthor())
       .append(getPostId())
       .append(getContent())
+      .append(getCreatedAt())
       .toString()
       .hashCode();
   }
@@ -88,7 +97,8 @@ public final class Comment implements Model {
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("author=" + String.valueOf(getAuthor()) + ", ")
       .append("postID=" + String.valueOf(getPostId()) + ", ")
-      .append("content=" + String.valueOf(getContent()))
+      .append("content=" + String.valueOf(getContent()) + ", ")
+      .append("createdAt=" + String.valueOf(getCreatedAt()))
       .append("}")
       .toString();
   }
@@ -110,6 +120,7 @@ public final class Comment implements Model {
       id,
       null,
       null,
+      null,
       null
     );
   }
@@ -118,7 +129,8 @@ public final class Comment implements Model {
     return new CopyOfBuilder(id,
       author,
       postID,
-      content);
+      content,
+      createdAt);
   }
   public interface AuthorStep {
     PostIdStep author(String author);
@@ -138,6 +150,7 @@ public final class Comment implements Model {
   public interface BuildStep {
     Comment build();
     BuildStep id(String id);
+    BuildStep createdAt(String createdAt);
   }
   
 
@@ -146,6 +159,7 @@ public final class Comment implements Model {
     private String author;
     private String postID;
     private String content;
+    private String createdAt;
     @Override
      public Comment build() {
         String id = this.id != null ? this.id : UUID.randomUUID().toString();
@@ -154,7 +168,8 @@ public final class Comment implements Model {
           id,
           author,
           postID,
-          content);
+          content,
+          createdAt);
     }
     
     @Override
@@ -178,6 +193,12 @@ public final class Comment implements Model {
         return this;
     }
     
+    @Override
+     public BuildStep createdAt(String createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+    
     /**
      * @param id id
      * @return Current Builder instance, for fluent method chaining
@@ -190,11 +211,12 @@ public final class Comment implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String author, String postId, String content) {
+    private CopyOfBuilder(String id, String author, String postId, String content, String createdAt) {
       super.id(id);
       super.author(author)
         .postId(postId)
-        .content(content);
+        .content(content)
+        .createdAt(createdAt);
     }
     
     @Override
@@ -210,6 +232,11 @@ public final class Comment implements Model {
     @Override
      public CopyOfBuilder content(String content) {
       return (CopyOfBuilder) super.content(content);
+    }
+    
+    @Override
+     public CopyOfBuilder createdAt(String createdAt) {
+      return (CopyOfBuilder) super.createdAt(createdAt);
     }
   }
   

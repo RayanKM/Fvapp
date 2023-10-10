@@ -1,9 +1,8 @@
-package com.example.fvapp
+package com.fanzverse.fvapp
 
 import android.os.Parcel
 import android.os.Parcelable
 import com.amplifyframework.datastore.generated.model.FollowRequest
-import com.amplifyframework.datastore.generated.model.Like
 
 class ReqDataModel (val pfp: String,val requests: List<FollowRequest>) :
     Parcelable {
