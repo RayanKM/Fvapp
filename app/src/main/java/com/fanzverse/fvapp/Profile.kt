@@ -201,7 +201,12 @@ class Profile : Fragment(R.layout.fragment_profile) {
             fetchPost(post)
             fetchLikes(post)
             binding.more.visibility = View.GONE
+            binding.posts.visibility = View.GONE
             checkfollow(post.toString(),n!!)
+        }
+
+        binding.posts.setOnClickListener {
+            binding.mainRecyclerview.visibility = View.VISIBLE
         }
         binding.logout.setOnClickListener {
             val options = AuthSignOutOptions.builder()
@@ -239,8 +244,8 @@ class Profile : Fragment(R.layout.fragment_profile) {
                     binding.author.text = post.fullname
                     binding.bio.text = post.bio?:""
                     bio = post.bio?:""
-                    binding.followers.text = "${post.followers?.size ?: 0}"
-                    binding.following.text = "${post.following?.size ?: 0}"
+                    binding.followers.text = "${post.followers?.size!! - 1}"
+                    binding.following.text = "${post.following?.size!! - 1}"
                     Log.e("azzzz", "${post.pfp}")
                     if (isAdded){
                         activity?.runOnUiThread {
@@ -295,7 +300,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
         Amplify.API.query(
             ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id)),
             { postResponse ->
-                val sortedPosts = postResponse?.data?.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
+                val sortedPosts = postResponse.data.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
 
                 sortedPosts?.forEach { post ->
                     val postId = post.id
@@ -313,7 +318,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
 
                         // Create a PostWithComments object and add it to the list
                         val postWithComments =
-                            PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await())
+                            PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await(), postDate)
                         Log.e("qsfqdqdqqdq", "qsdqre3 ${pfp}")
                         postListWithComments.add(postWithComments)
                     }
@@ -355,12 +360,16 @@ class Profile : Fragment(R.layout.fragment_profile) {
                         }else{
                             activity?.runOnUiThread {
                                 binding.snd.visibility = View.VISIBLE
+                                binding.posts.visibility = View.GONE
+
                             }
                         }
                     }
                     else{
                         activity?.runOnUiThread {
                             binding.snd.visibility = View.VISIBLE
+                            binding.posts.visibility = View.GONE
+
                         }
                     }
                 }
@@ -376,7 +385,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
                 for (item in response.data.items) {
                     likeCount++
                 }
-                binding.likes.text = "${likeCount}"
+                binding.likes.text = "$likeCount"
             },
             { Log.e("MyAmplifyApp", "Query failure", it) }
         )

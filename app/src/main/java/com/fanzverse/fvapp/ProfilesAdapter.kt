@@ -47,6 +47,8 @@ class ProfilesAdapter(private val context: Context, private val Post:List<Usr>) 
             Glide.with(context)
                 .load(request.pfp)
                 .into(holder.pfp)
+        }else{
+            holder.pfp.setImageResource(R.drawable.pfp)
         }
     }
 }

@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.amplifyframework.datastore.generated.model.Comment
 
-class CommentsDataModel (val pfp: String, val comments: List<Comment>) :
+class CommentsDataModel (val pfp: String, val comments: Comment) :
     Parcelable {
     override fun describeContents(): Int {
         TODO("Not yet implemented")

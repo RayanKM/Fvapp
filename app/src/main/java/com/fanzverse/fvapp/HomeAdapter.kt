@@ -86,6 +86,8 @@ class HomeAdapter (private val context: Context, private val Post: MutableList<P
             Glide.with(context)
                 .load(post.postUser)
                 .into(holder.img)
+        }else{
+            holder.img.setImageResource(R.drawable.pfp)
         }
     }
 }

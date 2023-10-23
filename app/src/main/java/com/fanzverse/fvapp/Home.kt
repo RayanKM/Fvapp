@@ -32,17 +32,21 @@ import com.fanzverse.fvapp.databinding.FragmentHomeBinding
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.instacart.library.truetime.TrueTime
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
 import www.sanju.motiontoast.MotionToast
 import www.sanju.motiontoast.MotionToastStyle
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.lang.Math.abs
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -52,6 +56,7 @@ import java.util.TimeZone
 
 class Home : Fragment(R.layout.fragment_home) {
     private var player: SimpleExoPlayer? = null
+    var allPosts = mutableListOf<PosDataModel>()
     var videoUrlLiveData = MutableLiveData<String>()
     var downloadUri : String? = null?:""
     var tp : String? = null?:""
@@ -123,7 +128,7 @@ class Home : Fragment(R.layout.fragment_home) {
         player = SimpleExoPlayer.Builder(requireContext()).build()
         binding.playerView.player = player
         communicator = activity as Communicator
-        fetchPosts(n!!)
+        fetchAll(n!!)
         binding.mainRecyclerview.apply {
             layoutManager = LinearLayoutManager(this.context)
             adapter = HomeAdapter(requireContext(), postListWithComments).apply {
@@ -173,39 +178,54 @@ class Home : Fragment(R.layout.fragment_home) {
 
         }
     }
+    fun fetchAll(id: String) {
 
-    fun fetch(id: String) {
+        allPosts.clear()
         Amplify.API.query(
-            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id)),
-            { postResponse ->
-                Log.e("MyAmplifyApp", "yesssssss2222")
-                val sortedPosts = postResponse.data.sortedByDescending { it.createdAt }
+            ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
+            { response ->
+                response.data.forEach { existingUser ->
+                    if (existingUser.following != null) {
+                        val following = existingUser.following
+                        for (i in following) {
+                            fetchPostsForUser(i)
+                            Log.e("MyAmplifyApp", "$i")
+                        }
+                    }
+                }
+            },
+            { responseError ->
+                Log.e("MyAmplifyApp", "Query failure", responseError)
+            }
+        )
+    }
+    fun fetchPostsForUser(username: String) {
+        Log.e("MyAmplifyApp5", "$username")
 
-                sortedPosts.forEach { post ->
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(username)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
                     val postId = post.id
                     val postAuthor = post.author
                     val postContent = post.content
+                    Log.e("MyAmplifyApp5", "${postContent}")
                     val postType = post.typ
                     val postDate = post.createdAt
                     val timeAgo = calculateTimeAgo(postDate)
                     val postMedia: String = post.media ?: ""
-                    Log.e("MyAmplifyApp", "$postContent")
-
 
                     runBlocking {
                         val cm = async { cmt(postId) }
                         val lk = async { lks(postId) }
-                        val pf = async { getPfp(id) }
+                        val pf = async { getPfp(username) }
 
-                        val postWithComments = PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await())
-                        postListWithComments.add(postWithComments)
+                        val postWithComments = PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await(), postDate)
+                        allPosts.add(postWithComments)
+                        updateUI(allPosts)
                     }
                 }
-
-                activity?.runOnUiThread {
-                    // Notify the adapter that the data has changed
-                    binding.mainRecyclerview.adapter?.notifyDataSetChanged()
-                }
+                Log.e("MyAmplifyApp5", "afterpost")
             },
             { postError ->
                 Log.e("MyAmplifyApp", "Query post failure", postError)
@@ -214,25 +234,123 @@ class Home : Fragment(R.layout.fragment_home) {
     }
 
 
-    fun fetchPosts(id: String) {
-        Amplify.API.query(
-            ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
-            { response ->
-                Log.e("MyAmplifyApp", "yesssssss")
-                response.data.forEach { existingUser ->
-                    if (existingUser.following != null) {
-                        val following = existingUser.following
-                        for (i in following) {
-                            fetch(i)
-                            Log.e("MyAmplifyApp", "$i")
-                        }
-                    } else {
-                    }
-                }
-            },
-            { Log.e("MyAmplifyApp", "Query failure", it) }
-        )
+    fun updateUI(posts: List<PosDataModel>) {
+        // Sort the posts and update the UI
+        val sortedPosts = posts.sortedByDescending { it.sort }
+
+        postListWithComments.clear()
+        postListWithComments.addAll(sortedPosts)
+
+        activity?.runOnUiThread {
+            // Notify the adapter that the data has changed
+            binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+        }
     }
+    fun createPost(username: String, content: String, typ:String) {
+        // Create an instance of OkHttpClient
+        val client = OkHttpClient()
+
+        val url = "http://worldtimeapi.org/api/timezone/UTC"
+
+        val request = Request.Builder()
+            .url(url)
+            .build()
+
+        // Use OkHttp to enqueue the request
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle network request failure here
+                Log.i("MyAmplifyApp2", "faild", e)
+
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                // Check if the response was successful
+                if (!response.isSuccessful) {
+                    Log.i("MyAmplifyApp2", "unss")
+                    // Handle the unsuccessful response here
+                } else {
+                    Log.i("MyAmplifyApp2", "yss")
+
+                    // Get the response body as a JSON string
+                    val json = response.body?.string()
+
+                    // Parse the JSON string
+                    val jsonObject = JSONObject(json)
+
+                    // Extract the "utc_datetime" value from the JSON
+                    val utcDatetime = jsonObject.optString("utc_datetime")
+                    Log.i("MyAmplifyApp2", "$utcDatetime")
+
+
+                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ", Locale.getDefault())
+                    inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+                    val date = inputFormat.parse(utcDatetime)
+
+                    val outputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                    outputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+                    val formattedDatetime = outputFormat.format(date)
+
+
+                    hideKeyboard(binding.posttext)
+                    val post = Post.builder()
+                        .content(content)
+                        .author(username)
+                        .media("https://media172200-yandev.s3.ap-south-1.amazonaws.com/$downloadUri")
+                        .typ(typ)
+                        .createdAt(formattedDatetime)
+                        .build()
+                    Amplify.API.mutate(
+                        ModelMutation.create(post),
+                        { response ->
+                            Log.e("MyAmplifyApp", "${response.data.id}",)
+                            // This block is executed when the mutation is successful
+                            runBlocking {
+                                val pf = async { getPfp(username) }
+                                postListWithComments.add(0, PosDataModel(response.data.content,response.data.author,response.data.id,response.data.media,pf.await(),response.data.typ,calculateTimeAgo(response.data.createdAt),
+                                    listOf(),
+                                    listOf(),response.data.createdAt))}
+
+                            activity?.runOnUiThread {
+                                binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+
+                                binding.posttext.text.clear()
+                                downloadUri = ""
+                                tp = ""
+                                videoUrlLiveData.value = ""
+                                binding.playerView.visibility = View.GONE
+                                binding.main.visibility = View.GONE
+                                MotionToast.createColorToast(
+                                    requireActivity(),
+                                    "Post created Successfully",
+                                    "You can see it on your profile",
+                                    MotionToastStyle.SUCCESS,
+                                    MotionToast.GRAVITY_BOTTOM,
+                                    MotionToast.LONG_DURATION,
+                                    ResourcesCompat.getFont(
+                                        requireActivity(),
+                                        www.sanju.motiontoast.R.font.helvetica_regular
+                                    )
+                                )
+                            }
+                            // Handle any other logic you need here for a successful mutation
+                        },
+                        { error ->
+                            // This block is executed when there's an error during the mutation
+                            Log.e("MyAmplifyApp", "Create failed", error)
+                            // Handle the error appropriately
+                        }
+                    )
+                    // Now you have the "utc_datetime" value
+                    // You can use it as needed
+                }
+            }
+        })
+
+    }
+
     fun likePost(id: String, postid: String,to:String) {
         val post = Like.builder()
             .username(id)
@@ -252,79 +370,6 @@ class Home : Fragment(R.layout.fragment_home) {
                 // Handle the error appropriately
             }
         )
-    }
-    fun createPost(username: String, content: String, typ:String) {
-        GlobalScope.launch(Dispatchers.IO) {
-            TrueTime.build()
-                .initialize()
-
-            // Get the current UTC time from TrueTime
-            val currentUTCTimeMillis = TrueTime.now().time
-
-            // Create a SimpleDateFormat object with the desired format
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-
-            // Set the time zone to UTC
-            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-
-            // Format the current UTC time
-            val formattedUTCTime = dateFormat.format(Date(currentUTCTimeMillis))
-
-            hideKeyboard(binding.posttext)
-            Amplify.API.query(
-                ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(username)),
-                { postResponse ->
-                    postResponse.data.forEach { post ->
-                        val post = Post.builder()
-                            .content(content)
-                            .author(username)
-                            .media("https://media172200-yandev.s3.ap-south-1.amazonaws.com/$downloadUri")
-                            .typ(typ)
-                            .createdAt(formattedUTCTime)
-                            .build()
-                        Amplify.API.mutate(
-                            ModelMutation.create(post),
-                            { response ->
-                                Log.e("MyAmplifyApp", "${response.data.id}",)
-                                // This block is executed when the mutation is successful
-                                activity?.runOnUiThread {
-                                    binding.posttext.text.clear()
-                                    downloadUri = ""
-                                    tp = ""
-                                    videoUrlLiveData.value = ""
-                                    binding.playerView.visibility = View.GONE
-                                    binding.main.visibility = View.GONE
-                                    MotionToast.createColorToast(
-                                        requireActivity(),
-                                        "Post created Successfully",
-                                        "You can see it on your profile",
-                                        MotionToastStyle.SUCCESS,
-                                        MotionToast.GRAVITY_BOTTOM,
-                                        MotionToast.LONG_DURATION,
-                                        ResourcesCompat.getFont(
-                                            requireActivity(),
-                                            www.sanju.motiontoast.R.font.helvetica_regular
-                                        )
-                                    )
-                                }
-                                // Handle any other logic you need here for a successful mutation
-                            },
-                            { error ->
-                                // This block is executed when there's an error during the mutation
-                                Log.e("MyAmplifyApp", "Create failed", error)
-                                // Handle the error appropriately
-                            }
-                        )
-                    }
-                },
-                { postError ->
-                    Log.e("MyAmplifyApp", "Query post failure", postError)
-                }
-            )
-            // Now you can use formattedUTCTime in your UI or perform other operations
-        }
-
-
     }
     override fun onDestroyView() {
         super.onDestroyView()

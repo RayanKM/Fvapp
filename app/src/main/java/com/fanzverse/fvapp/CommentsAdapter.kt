@@ -43,8 +43,7 @@ class CommentsAdapter(private val context: Context, private val Post: MutableLis
     override fun onBindViewHolder(holder: UserViewHolder2, position: Int) {
         holder.pfp.clipToOutline = true
 
-        val comments: List<Comment> = Post[position].comments
-        val comment: Comment = comments[position]
+        val comment: Comment = Post[position].comments
         val timeAgo = calculateTimeAgo(comment.createdAt)
         holder.author.text = comment.author
         holder.ago.text = timeAgo

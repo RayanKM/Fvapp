@@ -1,6 +1,6 @@
 export type AmplifyDependentResourcesAttributes = {
   "api": {
-    "s14app": {
+    "FanzverseAPI": {
       "GraphQLAPIEndpointOutput": "string",
       "GraphQLAPIIdOutput": "string",
       "GraphQLAPIKeyOutput": "string"

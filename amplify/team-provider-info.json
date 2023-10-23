@@ -51,11 +51,11 @@
       "auth": {
         "s14appba531e7b": {}
       },
-      "api": {
-        "s14app": {}
-      },
       "storage": {
         "Fanzverseapp": {}
+      },
+      "api": {
+        "FanzverseAPI": {}
       }
     }
   }

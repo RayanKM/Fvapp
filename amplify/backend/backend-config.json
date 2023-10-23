@@ -1,15 +1,15 @@
 {
   "api": {
-    "s14app": {
+    "FanzverseAPI": {
       "dependsOn": [],
       "output": {
         "authConfig": {
           "additionalAuthenticationProviders": [],
           "defaultAuthentication": {
             "apiKeyConfig": {
-              "apiKeyExpirationDate": "2024-09-17T22:15:03.247Z",
+              "apiKeyExpirationDate": "2024-10-11T01:30:51.793Z",
               "apiKeyExpirationDays": 365,
-              "description": "apiKey"
+              "description": "apikey"
             },
             "authenticationType": "API_KEY"
           }

@@ -97,51 +97,23 @@ class Notifications : Fragment(R.layout.fragment_notifications) {
             ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
             { response ->
                 response.data.forEach { existingUser ->
-                    if (existingUser.followers != null){
-                        val following = existingUser.followers
-                        following.add(userid)
-                        val updatedUser = existingUser.copyOfBuilder().id(existingUser.id)
-                            .followers(following)
-                            .build()
-                        // Perform the update mutation with the modified user object
-                        Amplify.API.mutate(
-                            ModelMutation.update(updatedUser),
-                            { updateResponse ->
-                                // Handle the successful update
-                                Log.i("Amplify", "User updated: ${updateResponse.data}")
-                            },
-                            { error ->
-                                // Handle the error
-                                Log.e("Amplify", "Error updating user", error)
-                            }
-                        )
-                    }
-                    else{
-                        var following = mutableListOf<String>()
-                        following.add(userid)
-                        if (existingUser != null) {
-                            // Modify the "name" field
-                            val updatedUser = existingUser.copyOfBuilder().id(existingUser.id)
-                                .followers(following)
-                                .build()
-                            Log.i("Amplify", "UseqzdqzdzqsqddqzAA : ${updatedUser}")
-
-                            // Perform the update mutation with the modified user object
-                            Amplify.API.mutate(
-                                ModelMutation.update(updatedUser),
-                                { updateResponse ->
-                                    // Handle the successful update
-                                    Log.i("Amplify", "User updated: ${updateResponse.data}")
-                                },
-                                { error ->
-                                    // Handle the error
-                                    Log.e("Amplify", "Error updating user", error)
-                                }
-                            )
-                        } else {
-                            Log.e("Amplify", "User not found")
+                    val following = existingUser.followers
+                    following.add(userid)
+                    val updatedUser = existingUser.copyOfBuilder().id(existingUser.id)
+                        .followers(following)
+                        .build()
+                    // Perform the update mutation with the modified user object
+                    Amplify.API.mutate(
+                        ModelMutation.update(updatedUser),
+                        { updateResponse ->
+                            // Handle the successful update
+                            Log.i("Amplify", "User updated: ${updateResponse.data}")
+                        },
+                        { error ->
+                            // Handle the error
+                            Log.e("Amplify", "Error updating user", error)
                         }
-                    }
+                    )
                 }
             },
             { Log.e("MyAmplifyApp", "Query failure", it) }
@@ -151,49 +123,23 @@ class Notifications : Fragment(R.layout.fragment_notifications) {
             ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(userid)),
             { response ->
                 response.data.forEach { existingUser ->
-                    if (existingUser.following != null){
-                        val following = existingUser.following
-                        following.add(id)
-                        val updatedUser = existingUser.copyOfBuilder().id(existingUser.id)
-                            .following(following)
-                            .build()
-                        // Perform the update mutation with the modified user object
-                        Amplify.API.mutate(
-                            ModelMutation.update(updatedUser),
-                            { updateResponse ->
-                                // Handle the successful update
-                                Log.i("Amplify", "User updated: ${updateResponse.data}")
-                            },
-                            { error ->
-                                // Handle the error
-                                Log.e("Amplify", "Error updating user", error)
-                            }
-                        )
-                    }
-                    else{
-                        var following = mutableListOf<String>()
-                        following.add(id)
-                        if (existingUser != null) {
-                            // Modify the "name" field
-                            val updatedUser = existingUser.copyOfBuilder().id(existingUser.id)
-                                .following(following)
-                                .build()
-                            // Perform the update mutation with the modified user object
-                            Amplify.API.mutate(
-                                ModelMutation.update(updatedUser),
-                                { updateResponse ->
-                                    // Handle the successful update
-                                    Log.i("Amplify", "User updated: ${updateResponse.data}")
-                                },
-                                { error ->
-                                    // Handle the error
-                                    Log.e("Amplify", "Error updating user", error)
-                                }
-                            )
-                        } else {
-                            Log.e("Amplify", "User not found")
+                    val following = existingUser.following
+                    following.add(id)
+                    val updatedUser = existingUser.copyOfBuilder().id(existingUser.id)
+                        .following(following)
+                        .build()
+                    // Perform the update mutation with the modified user object
+                    Amplify.API.mutate(
+                        ModelMutation.update(updatedUser),
+                        { updateResponse ->
+                            // Handle the successful update
+                            Log.i("Amplify", "User updated: ${updateResponse.data}")
+                        },
+                        { error ->
+                            // Handle the error
+                            Log.e("Amplify", "Error updating user", error)
                         }
-                    }
+                    )
                 }
             },
             { Log.e("MyAmplifyApp", "Query failure", it) }

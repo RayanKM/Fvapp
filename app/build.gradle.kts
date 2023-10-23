@@ -83,6 +83,6 @@ dependencies {
     implementation ("com.github.dhaval2404:imagepicker:2.1")
 
     //Time
-    implementation ("com.github.instacart.truetime-android:library-extension-rx:3.4")
-    implementation ("com.github.instacart.truetime-android:library:3.4")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.1")
+
 }

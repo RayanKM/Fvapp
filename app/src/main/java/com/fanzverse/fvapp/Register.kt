@@ -68,10 +68,16 @@ class Register : AppCompatActivity() {
         Amplify.Auth.signIn(username, password,
             { result ->
                 if (result.isSignedIn) {
+                    var following = mutableListOf<String>()
+                    var follower = mutableListOf<String>()
+                    following.add(username)
+                    follower.add("none")
                     val user = Usr.builder()
                         .username(username)
                         .fullname(name)
                         .email(email)
+                        .following(following)
+                        .followers(follower)
                         .pfp("")
                         .build()
                     Amplify.API.mutate(

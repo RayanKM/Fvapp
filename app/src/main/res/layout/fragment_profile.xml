@@ -164,6 +164,15 @@
                     android:text="Send follow request"
                     android:textColor="@color/white"
                     android:textStyle="bold" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/posts"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:background="@drawable/shape2"
+                    android:layout_height="wrap_content"
+                    android:text="Posts"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
             </LinearLayout>
             <FrameLayout
                 android:layout_width="match_parent"
@@ -171,6 +180,7 @@
                 android:background="#696666"/>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/mainRecyclerview"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_weight="1"
                 android:layout_height="0dp"/>

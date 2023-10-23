@@ -20,22 +20,23 @@ import com.bumptech.glide.Glide
 import com.fanzverse.fvapp.databinding.FragmentPostDetailBinding
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.instacart.library.truetime.TrueTime
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
 class PostDetail : Fragment(R.layout.fragment_post_detail) {
     private var player: SimpleExoPlayer? = null
     private var comments = mutableListOf<CommentsDataModel>()
-    private var comment = mutableListOf<Comment>()
     private var likes = mutableListOf<Like>()
     private lateinit var postid: String
     private lateinit var binding: FragmentPostDetailBinding
@@ -61,6 +62,7 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
         var post: PosDataModel? = arguments?.getParcelable("post")
         postid = post?.postID.toString()
         val to = post?.postAuthor.toString()
+        binding.postAu.clipToOutline = true
         val checklike : List<Like>
         checklike = post!!.likes
         fetch(postid)
@@ -97,66 +99,96 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
     }
 
     fun createComment(id:String, postid: String,comment : String){
-        GlobalScope.launch(Dispatchers.IO) {
-            TrueTime.build()
-                .initialize()
+        // Create an instance of OkHttpClient
+        val client = OkHttpClient()
 
-            // Get the current UTC time from TrueTime
-            val currentUTCTimeMillis = TrueTime.now().time
+        val url = "http://worldtimeapi.org/api/timezone/UTC"
 
-            // Create a SimpleDateFormat object with the desired format
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val request = Request.Builder()
+            .url(url)
+            .build()
 
-            // Set the time zone to UTC
-            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        // Use OkHttp to enqueue the request
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle network request failure here
+            }
 
-            // Format the current UTC time
-            val formattedUTCTime = dateFormat.format(Date(currentUTCTimeMillis))
-            hideKeyboard(binding.commentEditText)
-            val comment = Comment.builder()
-                .author(id)
-                .postId(postid)
-                .content(comment)
-                .createdAt(formattedUTCTime)
-                .build()
-            Amplify.API.mutate(
-                ModelMutation.create(comment),
-                { response ->
-                    // This block is executed when the mutation is successful
-                    Log.i("MyAmplifyApp", "Todo with id: ${response.data.id}")
+            override fun onResponse(call: Call, response: Response) {
+                // Check if the response was successful
+                if (!response.isSuccessful) {
+                    // Handle the unsuccessful response here
+                } else {
+                    // Get the response body as a JSON string
+                    val json = response.body?.string()
 
-                    activity?.runOnUiThread {
-                        fetchComments(postid)
-                        // Notify the adapter that the data has changed
-                        binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
-                    }
-                    binding.commentEditText.text.clear()
-                    // Handle any other logic you need here for a successful mutation
-                },
-                { error ->
-                    // This block is executed when there's an error during the mutation
-                    Log.e("MyAmplifyApp", "Create failed", error)
-                    // Handle the error appropriately
+                    // Parse the JSON string
+                    val jsonObject = JSONObject(json)
+
+                    // Extract the "utc_datetime" value from the JSON
+                    val utcDatetime = jsonObject.optString("utc_datetime")
+
+                    val inputFormat =
+                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ", Locale.getDefault())
+                    inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+                    val date = inputFormat.parse(utcDatetime)
+
+                    val outputFormat =
+                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                    outputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+                    val formattedDatetime = outputFormat.format(date)
+                    hideKeyboard(binding.commentEditText)
+                    val comment = Comment.builder()
+                        .author(id)
+                        .postId(postid)
+                        .content(comment)
+                        .createdAt(formattedDatetime)
+                        .build()
+                    Amplify.API.mutate(
+                        ModelMutation.create(comment),
+                        { response ->
+                            // This block is executed when the mutation is successful
+                            Log.i("MyAmplifyApp", "Todo with id: ${response.data.id}")
+
+                            runBlocking {
+                                val pf = async { getPfp(id) }
+                                // Create a PostWithComments object and add it to the list
+                                val Reqs = CommentsDataModel(pf.await(),comment)
+                                comments.add(0,Reqs)
+                                activity?.runOnUiThread {
+                                    binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
+                                }
+                            }
+                            binding.commentEditText.text.clear()
+                            // Handle any other logic you need here for a successful mutation
+                        },
+                        { error ->
+                            // This block is executed when there's an error during the mutation
+                            Log.e("MyAmplifyApp", "Create failed", error)
+                            // Handle the error appropriately
+                        }
+                    )
                 }
-            )
-        }
+            }
+        })
     }
+
     private fun fetchComments(postId:String){
         comments.clear()
-        comment.clear()
         Amplify.API.query(
             ModelQuery.list(Comment::class.java, Comment.POST_ID.contains(postId)),
             { commentResponse ->
                 val sortedComments = commentResponse.data.sortedByDescending { it.createdAt }
                 sortedComments.forEach { comm ->
-                    comment.add(comm)
                     runBlocking {
                         val pf = async { getPfp(comm.author) }
                         // Create a PostWithComments object and add it to the list
-                        val Reqs = CommentsDataModel(pf.await(),comment)
+                        val Reqs = CommentsDataModel(pf.await(),comm)
                         comments.add(Reqs)
                         activity?.runOnUiThread {
-                            binding.cmnts.text = "${comment?.size} Comments"
+                            binding.cmnts.text = "${comments?.size} Comments"
                         }
                     }
                 }

@@ -37,16 +37,14 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
         val n = MainActivity.userN
         Log.e("MyAmplifyApp", "SUIIIIII ${n}")
         communicator = activity as Communicator
-        val searchView = view.findViewById<SearchView>(R.id.search_view)
+            val searchView = view.findViewById<SearchView>(R.id.srchv)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText != null) {
-                    fetch(newText)
-                }
+                fetch(newText!!)
                 return true
             }
         })
@@ -65,23 +63,24 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
 
     }
     fun fetch(id: String) {
-        if (users != null){
-            users.clear()
-        }
-        Amplify.API.query(
-            ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
-            { postResponse ->
-                postResponse.data.forEach { post ->
-                    users.add(post)
-                    activity?.runOnUiThread {
-                        // Notify the adapter that the data has changed
-                        binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+        users.clear()
+        if (id != null){
+            Amplify.API.query(
+                ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
+                { postResponse ->
+                    postResponse.data.forEach { post ->
+                        users.add(post)
+                        activity?.runOnUiThread {
+                            // Notify the adapter that the data has changed
+                            binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+                        }
                     }
+                },
+                { postError ->
+                    Log.e("MyAmplifyApp", "Query post failure", postError)
                 }
-            },
-            { postError ->
-                Log.e("MyAmplifyApp", "Query post failure", postError)
-            }
-        )
+            )
+        }
+
     }
 }
