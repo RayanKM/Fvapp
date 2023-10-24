@@ -153,7 +153,22 @@ class Home : Fragment(R.layout.fragment_home) {
         binding.publish.setOnClickListener {
             val author = MainActivity.userN
             val content = binding.posttext.text.toString()
-            createPost(author!!, content, tp.toString())
+            if (content != "" || tp != ""){
+                createPost(author!!, content, tp.toString())
+            }else{
+                MotionToast.createColorToast(
+                    requireActivity(),
+                    "Empty post",
+                    "Please share something.",
+                    MotionToastStyle.WARNING,
+                    MotionToast.GRAVITY_BOTTOM,
+                    MotionToast.LONG_DURATION,
+                    ResourcesCompat.getFont(
+                        requireActivity(),
+                        www.sanju.motiontoast.R.font.helvetica_regular
+                    )
+                )
+            }
         }
         binding.addimg.setOnClickListener {
             tp = ""

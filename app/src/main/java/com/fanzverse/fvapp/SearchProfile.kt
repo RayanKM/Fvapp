@@ -81,6 +81,5 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
                 }
             )
         }
-
     }
 }
