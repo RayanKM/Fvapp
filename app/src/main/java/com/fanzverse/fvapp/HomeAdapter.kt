@@ -58,6 +58,9 @@ class HomeAdapter (private val context: Context, private val Post: MutableList<P
         if (hasLikeWithUsername) {
             holder.likesbtn.setImageResource(R.drawable.liked)
             holder.likesbtn.isClickable = false
+        } else{
+            holder.likesbtn.setImageResource(R.drawable.unliked)
+            holder.likesbtn.isClickable = true
         }
 
         holder.author.text = post.postAuthor

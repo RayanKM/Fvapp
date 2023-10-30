@@ -372,7 +372,6 @@ class Home : Fragment(R.layout.fragment_home) {
         Amplify.API.mutate(
             ModelMutation.create(post),
             { response ->
-
                 // This block is executed when the mutation is successful
                 Log.i("MyAmplifyApp", "Todo with id: ${response.data.id}")
                 // Handle any other logic you need here for a successful mutation
