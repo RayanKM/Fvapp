@@ -81,7 +81,6 @@ class Profile : Fragment(R.layout.fragment_profile) {
         val bottomSheetBehavior = BottomSheetBehavior.from(binding.sheet2)
         bottomSheetBehavior.peekHeight = 0
         bottomSheetBehavior.isDraggable = false
-        fetch("daks")
 
         communicator = activity as Communicator
         var post: String? = arguments?.getString("id")
@@ -175,6 +174,8 @@ class Profile : Fragment(R.layout.fragment_profile) {
                 dialog.dismiss()
             }
         }
+
+
         if (post == null || post == n){
             fetch(n!!)
             fetchPost(n!!)
@@ -240,15 +241,15 @@ class Profile : Fragment(R.layout.fragment_profile) {
             { postResponse ->
                 Log.e("azzzz", "respo")
                 postResponse.data.forEach { post ->
-                    binding.tag.text = "@${post.username}"
-                    binding.author.text = post.fullname
-                    binding.bio.text = post.bio?:""
-                    bio = post.bio?:""
-                    binding.followers.text = "${post.followers?.size!! - 1}"
-                    binding.following.text = "${post.following?.size!! - 1}"
                     Log.e("azzzz", "${post.pfp}")
                     if (isAdded){
                         activity?.runOnUiThread {
+                            binding.tag.text = "@${post.username}"
+                            binding.author.text = post.fullname
+                            binding.bio.text = post.bio?:""
+                            bio = post.bio?:""
+                            binding.followers.text = "${post.followers?.size!! - 1}"
+                            binding.following.text = "${post.following?.size!! - 1}"
                             if (post.pfp != ""){
                                 Glide.with(this)
                                     .load(post.pfp)

@@ -152,7 +152,8 @@
                     style="@style/TextViewStyle"
                     android:gravity="center"
                     android:textSize="14sp"
-                    android:layout_marginStart="8dp" />
+                    android:layout_gravity="center"
+                    android:layout_margin="8dp" />
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/snd"
                     android:visibility="gone"

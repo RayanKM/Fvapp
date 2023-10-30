@@ -134,10 +134,7 @@ class Home : Fragment(R.layout.fragment_home) {
             adapter = HomeAdapter(requireContext(), postListWithComments).apply {
                 setOnItemClickListener(object : HomeAdapter.onItemClickListener {
                     override fun onItemClick(position: Int) {
-                        Log.i("MyAmplifyApp2", "CLICKED")
-
                         val post = postListWithComments[position]
-                        Log.i("MyAmplifyApp2", "${post.postDate}")
                         communicator.passdata(post)
                     }
 
@@ -375,6 +372,7 @@ class Home : Fragment(R.layout.fragment_home) {
         Amplify.API.mutate(
             ModelMutation.create(post),
             { response ->
+
                 // This block is executed when the mutation is successful
                 Log.i("MyAmplifyApp", "Todo with id: ${response.data.id}")
                 // Handle any other logic you need here for a successful mutation

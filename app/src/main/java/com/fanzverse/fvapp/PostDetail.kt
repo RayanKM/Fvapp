@@ -40,6 +40,9 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
     private var likes = mutableListOf<Like>()
     private lateinit var postid: String
     private lateinit var binding: FragmentPostDetailBinding
+    val n = MainActivity.userN
+    var post: PosDataModel? = null
+    var to : String = ""
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,13 +61,10 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
         super.onViewCreated(view, savedInstanceState)
         player = SimpleExoPlayer.Builder(requireContext()).build()
         binding.playerView.player = player
-        val n = MainActivity.userN
-        var post: PosDataModel? = arguments?.getParcelable("post")
+        post = arguments?.getParcelable("post")
         postid = post?.postID.toString()
-        val to = post?.postAuthor.toString()
+        to = post?.postAuthor.toString()
         binding.postAu.clipToOutline = true
-        val checklike : List<Like>
-        checklike = post!!.likes
         fetch(postid)
         binding.cmnts.text = "${comments?.size} Comments"
         if (isAdded){
@@ -81,17 +81,7 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
             }
         }
 
-        val hasLikeWithUsername = checklike.any { it.username == n }
-        if (hasLikeWithUsername) {
-            binding.btnLike.setImageResource(R.drawable.liked)
-            binding.btnLike.isClickable = false
-        }else{
-            binding.btnLike.setOnClickListener {
-                binding.btnLike.setImageResource(R.drawable.liked)
-                likePost(n!!,postid,to)
-                binding.btnLike.isClickable = false
-            }
-        }
+
         binding.sendButton.setOnClickListener {
             val comment = binding.commentEditText.text.toString()
             createComment(n!!,post?.postID.toString(),comment)
@@ -174,7 +164,6 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
             }
         })
     }
-
     private fun fetchComments(postId:String){
         comments.clear()
         Amplify.API.query(
@@ -254,6 +243,16 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
                 likeResponse.data.forEach { like ->
                     likes.add(like)
                     activity?.runOnUiThread {
+                        if (like.username == n) {
+                            binding.btnLike.setImageResource(R.drawable.liked)
+                            binding.btnLike.isClickable = false
+                        }else{
+                            binding.btnLike.setOnClickListener {
+                                binding.btnLike.setImageResource(R.drawable.liked)
+                                likePost(n!!,postid,to)
+                                binding.btnLike.isClickable = false
+                            }
+                        }
                         // Notify the adapter that the data has changed
                         binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
                     }
