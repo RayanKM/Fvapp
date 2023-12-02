@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    style="@style/BgStyle"
+    android:layout_height="match_parent"
+    tools:context=".Home">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/mn"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        style="@style/BgStyle"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:padding="16dp"
+            style="@style/BgStyle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- Author Information -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Profile Image (You can use an ImageView here) -->
+                <ImageView
+                    android:id="@+id/postAu"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:scaleType="centerCrop"
+                    android:layout_marginVertical="5dp"
+                    android:background="@drawable/shape"
+                    android:clipToOutline="true"
+                    android:src="@drawable/pfp"/>
+
+
+                <!-- Author Name -->
+                <TextView
+                    android:id="@+id/author"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/TextViewStyle"
+                    android:text=""
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <!-- Post Content -->
+            <TextView
+                android:id="@+id/content"
+                android:layout_width="match_parent"
+                style="@style/TextViewStyle"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                android:layout_marginTop="8dp" />
+            <ImageView
+                android:id="@+id/main"
+                android:visibility="gone"
+                android:layout_margin="10dp"
+                android:maxHeight="400dp"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_gravity="left"
+                android:adjustViewBounds="true"
+                />
+            <com.google.android.exoplayer2.ui.PlayerView
+                android:visibility="gone"
+                android:id="@+id/playerView"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                app:use_controller="true" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="0.5"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_gravity="center"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/unliked"
+                        android:id="@+id/btn_like" />
+
+                    <!-- Total Likes -->
+                    <TextView
+                        android:id="@+id/lksp"
+                        android:gravity="center"
+                        android:layout_gravity="center"
+                        style="@style/TextViewStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/comments"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.5"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_gravity="center"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/comment"
+                        android:id="@+id/btn_comment" />
+
+                    <!-- Total Likes -->
+                    <TextView
+                        android:id="@+id/cmnts"
+                        android:gravity="center"
+                        android:layout_gravity="center"
+                        style="@style/TextViewStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="" />
+                </LinearLayout>
+                <!-- Like Button (You can use an ImageView or Button here) -->
+
+
+
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_marginVertical="10dp"
+                android:id="@+id/mainRecyclerview2"
+                android:layout_width="match_parent"
+                tools:listitem="@layout/comments"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#C8C8C8"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/commentEditTextLayout"
+            android:layout_width="0dp"
+            android:layout_weight="0.9"
+            android:layout_height="wrap_content"
+            app:hintEnabled="true"
+            app:hintAnimationEnabled="true">
+
+            <EditText
+                android:id="@+id/commentEditText"
+                android:layout_width="match_parent"
+                android:textColor="@color/black"
+                android:layout_height="wrap_content"
+                android:hint="Write a comment..."
+                android:inputType="textMultiLine|textAutoCorrect"
+                android:minLines="1"
+                android:maxLines="6"
+                android:scrollbars="vertical"
+                android:background="@android:color/transparent"
+                android:padding="8dp"
+                android:textSize="14sp" />
+
+            <!-- Add Send Button -->
+
+        </com.google.android.material.textfield.TextInputLayout>
+        <ImageView
+            android:id="@+id/sendButton"
+            android:layout_gravity="center"
+            android:layout_width="0dp"
+            android:layout_weight="0.1"
+            android:layout_height="30dp"
+            android:src="@drawable/send" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

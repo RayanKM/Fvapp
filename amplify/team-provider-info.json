@@ -1,0 +1,62 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-s14app-dev-22728-authRole",
+      "UnauthRoleArn": "arn:aws:iam::974833845303:role/amplify-s14app-dev-22728-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::974833845303:role/amplify-s14app-dev-22728-authRole",
+      "Region": "ap-southeast-1",
+      "DeploymentBucketName": "amplify-s14app-dev-22728-deployment",
+      "UnauthRoleName": "amplify-s14app-dev-22728-unauthRole",
+      "StackName": "amplify-s14app-dev-22728",
+      "StackId": "arn:aws:cloudformation:ap-southeast-1:974833845303:stack/amplify-s14app-dev-22728/e1dc5340-529d-11ee-aab4-0633aeb2fed4",
+      "AmplifyAppId": "dhmidqm7t1y7d"
+    },
+    "categories": {
+      "auth": {
+        "s14appba531e7b": {}
+      }
+    }
+  },
+  "rdev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-s14app-rdev-155018-authRole",
+      "UnauthRoleArn": "arn:aws:iam::974833845303:role/amplify-s14app-rdev-155018-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::974833845303:role/amplify-s14app-rdev-155018-authRole",
+      "Region": "ap-south-1",
+      "DeploymentBucketName": "amplify-s14app-rdev-155018-deployment",
+      "UnauthRoleName": "amplify-s14app-rdev-155018-unauthRole",
+      "StackName": "amplify-s14app-rdev-155018",
+      "StackId": "arn:aws:cloudformation:ap-south-1:974833845303:stack/amplify-s14app-rdev-155018/07950bc0-530e-11ee-b966-02c7e8dacfee",
+      "AmplifyAppId": "dpfns3oao64wk"
+    },
+    "categories": {
+      "auth": {
+        "s14appba531e7b": {}
+      }
+    }
+  },
+  "yandev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-s14app-yandev-172200-authRole",
+      "UnauthRoleArn": "arn:aws:iam::974833845303:role/amplify-s14app-yandev-172200-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::974833845303:role/amplify-s14app-yandev-172200-authRole",
+      "Region": "ap-south-1",
+      "DeploymentBucketName": "amplify-s14app-yandev-172200-deployment",
+      "UnauthRoleName": "amplify-s14app-yandev-172200-unauthRole",
+      "StackName": "amplify-s14app-yandev-172200",
+      "StackId": "arn:aws:cloudformation:ap-south-1:974833845303:stack/amplify-s14app-yandev-172200/2bae4260-54ad-11ee-aafd-023ce5bb8104",
+      "AmplifyAppId": "dpfns3oao64wk"
+    },
+    "categories": {
+      "auth": {
+        "s14appba531e7b": {}
+      },
+      "storage": {
+        "Fanzverseapp": {}
+      },
+      "api": {
+        "FanzverseAPI": {}
+      }
+    }
+  }
+}

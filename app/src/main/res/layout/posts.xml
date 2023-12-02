@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_marginBottom="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:orientation="vertical">
+        <!-- Author Information -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Profile Image (You can use an ImageView here) -->
+            <ImageView
+                android:id="@+id/postpfp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/shape"
+                android:clipToOutline="true"
+                android:src="@drawable/pfp"/>
+
+            <!-- Author Name -->
+            <TextView
+                android:id="@+id/author"
+                android:layout_width="wrap_content"
+                style="@style/TextViewStyle"
+                android:layout_height="wrap_content"
+                android:text=""
+                app:layout_constraintLeft_toRightOf="@id/postpfp"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginStart="8dp" />
+            <TextView
+                android:id="@+id/date"
+                android:gravity="end"
+                android:layout_width="wrap_content"
+                style="@style/TextViewStyle"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginEnd="8dp" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Post Content -->
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            style="@style/TextViewStyle"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
+
+        <ImageView
+            android:id="@+id/main"
+            android:visibility="gone"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_gravity="left"
+            />
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:visibility="gone"
+            android:id="@+id/playvid"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            app:use_controller="true" />
+
+        <!-- Like Button and Total Likes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/unliked"
+                    android:id="@+id/btn_like" />
+
+                <!-- Total Likes -->
+                <TextView
+                    android:id="@+id/lks"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    style="@style/TextViewStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/comments"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_gravity="center"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/comment"
+                    android:id="@+id/btn_comment" />
+
+                <!-- Total Likes -->
+                <TextView
+                    android:id="@+id/cmnts"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    style="@style/TextViewStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="" />
+            </LinearLayout>
+            <!-- Like Button (You can use an ImageView or Button here) -->
+
+
+
+
+        </LinearLayout>
+
+        <!-- Comment Button -->
+    </LinearLayout>
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#848484"/>
+</LinearLayout>

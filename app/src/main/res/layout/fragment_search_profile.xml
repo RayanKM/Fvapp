@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/BgStyle"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".SearchProfile">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        style="@style/BgStyle"
+        android:orientation="vertical"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:background="#CDCDCD"
+            android:orientation="horizontal"
+            android:layout_height="50dp">
+
+            <androidx.appcompat.widget.SearchView
+                android:layout_marginVertical="4dp"
+                android:layout_marginLeft="5dp"
+                android:id="@+id/srchv"
+                style="@style/TextViewStyle"
+                android:layout_weight="0.9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:defaultQueryHint="Search"
+                app:iconifiedByDefault="false"
+                app:queryHint="Search Profile" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/horizlayout"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:orientation="horizontal">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/mainRecyclerview2"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                tools:listitem="@layout/rounded"
+                style="@style/BgStyle"
+                android:layout_height="match_parent"/>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            style="@style/BgStyle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/mainRecyclerview"
+                android:layout_width="match_parent"
+                tools:listitem="@layout/requests"
+                style="@style/BgStyle"
+                android:layout_height="match_parent"/>
+        </LinearLayout>
+    </LinearLayout>
+    <androidx.cardview.widget.CardView
+        app:cardCornerRadius="0dp"
+        android:id="@+id/sheet3"
+        android:backgroundTint="#CDCDCD"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/mainRecyclerviewdt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </androidx.cardview.widget.CardView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

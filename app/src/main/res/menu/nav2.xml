@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/Foryou"
+        android:icon="@drawable/fyou"
+        android:title="For You"
+        app:cnb_iconColor="@color/black" />
+    <item
+        android:id="@+id/Following"
+        android:icon="@drawable/flwin"
+        android:title="Following"
+        app:cnb_iconColor="@color/black" />
+
+
+</menu>

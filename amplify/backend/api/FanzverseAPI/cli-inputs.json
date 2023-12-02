@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "FanzverseAPI",
+    "serviceName": "AppSync",
+    "defaultAuthType": {
+      "mode": "API_KEY",
+      "expirationTime": 365,
+      "apiKeyExpirationDate": "2024-10-11T01:30:51.793Z",
+      "keyDescription": "apikey"
+    },
+    "additionalAuthTypes": [],
+    "conflictResolution": {}
+  }
+}

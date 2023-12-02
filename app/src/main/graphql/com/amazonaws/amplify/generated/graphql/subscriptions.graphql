@@ -1,0 +1,217 @@
+# this is an auto generated file. This will be overwritten
+
+subscription OnCreateUsr($filter: ModelSubscriptionUsrFilterInput) {
+  onCreateUsr(filter: $filter) {
+    id
+    username
+    fullname
+    email
+    pfp
+    bio
+    followers
+    following {
+      name
+      news
+      __typename
+    }
+    news
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnUpdateUsr($filter: ModelSubscriptionUsrFilterInput) {
+  onUpdateUsr(filter: $filter) {
+    id
+    username
+    fullname
+    email
+    pfp
+    bio
+    followers
+    following {
+      name
+      news
+      __typename
+    }
+    news
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnDeleteUsr($filter: ModelSubscriptionUsrFilterInput) {
+  onDeleteUsr(filter: $filter) {
+    id
+    username
+    fullname
+    email
+    pfp
+    bio
+    followers
+    following {
+      name
+      news
+      __typename
+    }
+    news
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnCreateFollowRequest(
+  $filter: ModelSubscriptionFollowRequestFilterInput
+) {
+  onCreateFollowRequest(filter: $filter) {
+    id
+    fromUser
+    toUser
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnUpdateFollowRequest(
+  $filter: ModelSubscriptionFollowRequestFilterInput
+) {
+  onUpdateFollowRequest(filter: $filter) {
+    id
+    fromUser
+    toUser
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnDeleteFollowRequest(
+  $filter: ModelSubscriptionFollowRequestFilterInput
+) {
+  onDeleteFollowRequest(filter: $filter) {
+    id
+    fromUser
+    toUser
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnCreatePost($filter: ModelSubscriptionPostFilterInput) {
+  onCreatePost(filter: $filter) {
+    id
+    content
+    author
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnUpdatePost($filter: ModelSubscriptionPostFilterInput) {
+  onUpdatePost(filter: $filter) {
+    id
+    content
+    author
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnDeletePost($filter: ModelSubscriptionPostFilterInput) {
+  onDeletePost(filter: $filter) {
+    id
+    content
+    author
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnCreateLike($filter: ModelSubscriptionLikeFilterInput) {
+  onCreateLike(filter: $filter) {
+    id
+    username
+    postID
+    to
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnUpdateLike($filter: ModelSubscriptionLikeFilterInput) {
+  onUpdateLike(filter: $filter) {
+    id
+    username
+    postID
+    to
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnDeleteLike($filter: ModelSubscriptionLikeFilterInput) {
+  onDeleteLike(filter: $filter) {
+    id
+    username
+    postID
+    to
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnCreateComment($filter: ModelSubscriptionCommentFilterInput) {
+  onCreateComment(filter: $filter) {
+    id
+    author
+    postID
+    content
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnUpdateComment($filter: ModelSubscriptionCommentFilterInput) {
+  onUpdateComment(filter: $filter) {
+    id
+    author
+    postID
+    content
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnDeleteComment($filter: ModelSubscriptionCommentFilterInput) {
+  onDeleteComment(filter: $filter) {
+    id
+    author
+    postID
+    content
+    createdAt
+    updatedAt
+    __typename
+  }
+}
