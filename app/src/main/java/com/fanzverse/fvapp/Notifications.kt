@@ -49,7 +49,7 @@ class Notifications : Fragment(R.layout.fragment_notifications) {
                 setOnItemClickListener(object : RequestsAdapter.onItemClickListener {
                     override fun onItemClick(position: Int) {
                         val from : List<FollowRequest> = Requests[position].requests
-                        communicator.passid(from[position].fromUser)
+                        communicator.passid2(from[position].fromUser)
                     }
                     override fun onAcceptClick(position: Int) {
                         val from : List<FollowRequest> = Requests[position].requests

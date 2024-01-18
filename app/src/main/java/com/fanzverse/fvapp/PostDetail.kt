@@ -16,6 +16,7 @@ import com.amplifyframework.datastore.generated.model.Comment
 import com.amplifyframework.datastore.generated.model.Like
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.datastore.generated.model.Usr
+import com.amplifyframework.datastore.generated.model.eventPost
 import com.bumptech.glide.Glide
 import com.fanzverse.fvapp.databinding.FragmentPostDetailBinding
 import com.google.android.exoplayer2.MediaItem
@@ -38,11 +39,10 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
     private var player: SimpleExoPlayer? = null
     private var comments = mutableListOf<CommentsDataModel>()
     private var likes = mutableListOf<Like>()
-    private lateinit var postid: String
     private lateinit var binding: FragmentPostDetailBinding
     val n = MainActivity.userN
-    var post: PosDataModel? = null
-    var to : String = ""
+    var postID: String? = null
+    var to : String? = null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -61,11 +61,14 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
         super.onViewCreated(view, savedInstanceState)
         player = SimpleExoPlayer.Builder(requireContext()).build()
         binding.playerView.player = player
-        post = arguments?.getParcelable("post")
-        postid = post?.postID.toString()
-        to = post?.postAuthor.toString()
+        postID = arguments?.getString("id")
+        to = arguments?.getString("to")
         binding.postAu.clipToOutline = true
-        fetch(postid)
+        if (postID!! == to!!){
+            fetchE(postID!!)
+        }else{
+            fetch(postID!!)
+        }
         binding.cmnts.text = "${comments?.size} Comments"
         if (isAdded){
             binding.mainRecyclerview2.apply {
@@ -84,7 +87,7 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
 
         binding.sendButton.setOnClickListener {
             val comment = binding.commentEditText.text.toString()
-            createComment(n!!,post?.postID.toString(),comment)
+            createComment(n!!,postID!!,comment)
         }
     }
 
@@ -236,6 +239,56 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
             }
         )
     }
+    fun fetchE(postid: String) {
+        Amplify.API.query(
+            ModelQuery.list(eventPost::class.java, eventPost.ID.contains(postid)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    val postId = post.id
+                    val postAuthor = post.author
+                    val postContent = post.content
+                    activity?.runOnUiThread {
+                        binding.author.text = postAuthor
+                        binding.content.text = postContent
+                        if (post.typ == "image"){
+                            binding.main.visibility = View.VISIBLE
+                            Glide.with(requireActivity())
+                                .load(post.media)
+                                .into(binding.main)
+                        }else if (post.typ == "video"){
+                            binding.playerView.visibility = View.VISIBLE
+                            val mediaItem = MediaItem.fromUri(post.media)
+                            player?.setMediaItem(mediaItem)
+                            player?.prepare()
+                        }
+                        if (post.typ != ""){
+                            Glide.with(requireActivity())
+                                .load(post.media)
+                                .into(binding.main)
+                        }
+                        runBlocking {
+                            val pf =async { getPfp(postAuthor) }
+                            if (pf.await() != ""){
+                                Glide.with(requireActivity())
+                                    .load(pf.await())
+                                    .into(binding.postAu)
+                            }
+                        }
+                        fetchComments(postId)
+                        fetchLikes(postId)
+                        activity?.runOnUiThread {
+                            // Notify the adapter that the data has changed
+                            binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
+                        }
+                    }
+                }
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
+    }
+
     private fun fetchLikes(postId:String){
         Amplify.API.query(
             ModelQuery.list(Like::class.java, Like.POST_ID.contains(postId)),
@@ -246,10 +299,12 @@ class PostDetail : Fragment(R.layout.fragment_post_detail) {
                         if (like.username == n) {
                             binding.btnLike.setImageResource(R.drawable.liked)
                             binding.btnLike.isClickable = false
+                            Log.e("dqsdqdqsdsqdsq", "yesssss")
                         }else{
                             binding.btnLike.setOnClickListener {
+                                Log.e("dqsdqdqsdsqdsq", "dsqdqdsqqdq")
                                 binding.btnLike.setImageResource(R.drawable.liked)
-                                likePost(n!!,postid,to)
+                                likePost(n!!,postID!!,to!!)
                                 binding.btnLike.isClickable = false
                             }
                         }

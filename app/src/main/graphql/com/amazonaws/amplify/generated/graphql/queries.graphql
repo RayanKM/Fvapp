@@ -170,3 +170,93 @@ query ListComments(
     __typename
   }
 }
+
+query GetEvent($id: ID!) {
+  getEvent(id: $id) {
+    id
+    organizer
+    title
+    description
+    location
+    startDate
+    startTime
+    endDate
+    endTime
+    privacy
+    code
+    settings
+    members
+    background
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+query ListEvents(
+  $filter: ModelEventFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listEvents(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      organizer
+      title
+      description
+      location
+      startDate
+      startTime
+      endDate
+      endTime
+      privacy
+      code
+      settings
+      members
+      background
+      status
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+
+query GetEventPost($id: ID!) {
+  getEventPost(id: $id) {
+    id
+    content
+    author
+    eventID
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+query ListEventPosts(
+  $filter: ModelEventPostFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listEventPosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      content
+      author
+      eventID
+      media
+      typ
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}

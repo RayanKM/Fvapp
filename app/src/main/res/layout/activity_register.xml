@@ -87,7 +87,7 @@
                     android:textColor="@color/white"
                     android:textAllCaps="false"
                     android:hint="Username"
-                    android:digits="abcdefghijklmnopqrstuvwxyz0123456789_."
+                    android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_."
                     android:inputType="text" />
 
             </com.google.android.material.textfield.TextInputLayout>

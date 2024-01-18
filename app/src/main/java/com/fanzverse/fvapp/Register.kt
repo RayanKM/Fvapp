@@ -3,6 +3,8 @@ package com.fanzverse.fvapp
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -26,6 +28,34 @@ class Register : AppCompatActivity() {
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // Handle click on Login TextView
+
+        binding.nameEt.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(charSequence: CharSequence?, start: Int, count: Int, after: Int) {
+                // Not needed for this example
+            }
+
+            override fun onTextChanged(charSequence: CharSequence?, start: Int, before: Int, count: Int) {
+                // Not needed for this example
+            }
+
+            override fun afterTextChanged(editable: Editable?) {
+                // Convert the text to lowercase
+                val lowerCaseText = editable?.toString()?.toLowerCase()
+
+                // Disable the TextWatcher temporarily to avoid an infinite loop
+                binding.nameEt.removeTextChangedListener(this)
+
+                // Update the text in the TextInputEditText
+                binding.nameEt.setText(lowerCaseText)
+
+                // Move the cursor to the end of the text
+                binding.nameEt.setSelection(lowerCaseText?.length ?: 0)
+
+                // Reattach the TextWatcher
+                binding.nameEt.addTextChangedListener(this)
+            }
+        })
+
         binding.textView.setOnClickListener {
             val intent = Intent(this, Login::class.java)
             startActivity(intent)
@@ -122,9 +152,55 @@ class Register : AppCompatActivity() {
                     Log.e("MyAmplifyApp", "non")
                 }
             },
-            {runOnUiThread {
+            {
+                var following = mutableListOf<com.amplifyframework.datastore.generated.model.Person>()
+                var follower = mutableListOf<String>()
+                following.add(com.amplifyframework.datastore.generated.model.Person.builder().name(username).news("none").build())
+                follower.add("none")
+                val user = Usr.builder()
+                    .username(username)
+                    .fullname(name)
+                    .email(email)
+                    .following(following)
+                    .followers(follower)
+                    .pfp("")
+                    .news(UUID.randomUUID().toString())
+                    .build()
+                Amplify.API.mutate(
+                    ModelMutation.create(user),
+                    { response ->
+                        runOnUiThread {
+                            // Display success toast message using MotionToast library
+                            MotionToast.createColorToast(
+                                this,
+                                "SignUp Successful",
+                                "Joining..",
+                                MotionToastStyle.SUCCESS,
+                                MotionToast.GRAVITY_BOTTOM,
+                                MotionToast.LONG_DURATION,
+                                ResourcesCompat.getFont(
+                                    this,
+                                    www.sanju.motiontoast.R.font.helvetica_regular
+                                )
+                            )
+                            // Wait for 2 seconds and go to Register activity
+                            Handler().postDelayed({
+                                val intent = Intent(this, MainActivity::class.java)
+                                startActivity(intent)
+                                finish()
+                            }, 2000)
+                        }
+                        // This block is executed when the mutation is successful
+                        Log.i("MyAmplifyApp", "Todo with id: ${response.data.id}")
+                        // Handle any other logic you need here for a successful mutation
+                    },
+                    { error ->
+                        // This block is executed when there's an error during the mutation
+                        Log.e("MyAmplifyApp", "Create failed", error)
+                        // Handle the error appropriately
+                    }
+                )
                 Log.e("MyAmplifyApp", "log failed", it)
-            }
             }
         )
     }

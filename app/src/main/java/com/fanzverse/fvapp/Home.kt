@@ -140,7 +140,7 @@ class Home : Fragment(R.layout.fragment_home) {
                     setOnItemClickListener(object : HomeAdapter.onItemClickListener {
                         override fun onItemClick(position: Int) {
                             val post = postListWithComments[position]
-                            communicator.passdata(post)
+                            communicator.passid(post.postID, post.postAuthor)
                         }
 
                         override fun onLike(position: Int) {
@@ -295,7 +295,6 @@ class Home : Fragment(R.layout.fragment_home) {
         )
 
     }
-
     fun updateUI(posts: List<PosDataModel>) {
         // Sort the posts and update the UI
         val sortedPosts = posts.sortedByDescending { it.sort }
@@ -435,7 +434,6 @@ class Home : Fragment(R.layout.fragment_home) {
         })
 
     }
-
     fun likePost(id: String, postid: String,to:String) {
         val post = Like.builder()
             .username(id)
@@ -586,7 +584,6 @@ class Home : Fragment(R.layout.fragment_home) {
             Toast.makeText(activity, "Task Cancelled", Toast.LENGTH_SHORT).show()
         }
     }
-
     fun calculateTimeAgo(createdAt: String): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         sdf.timeZone = TimeZone.getTimeZone("UTC")

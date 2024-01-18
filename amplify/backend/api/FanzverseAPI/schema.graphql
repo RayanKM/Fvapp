@@ -60,3 +60,37 @@ type Comment @model @auth(rules: [
   content: String!
   createdAt: String
 }
+
+type Event @model @auth(rules: [
+  { allow: public, provider: apiKey, operations: [create, read, update, delete] }
+]) {
+  id: ID!
+  organizer: String!
+  title: String!
+  description: String!
+  location: String!
+  startDate: String!
+  startTime: String!
+  endDate: String!
+  endTime: String!
+  privacy: Boolean!
+  code: String
+  genCode: [String]
+  settings: Boolean!
+  members: [String]
+  background: String!
+  status: Boolean!
+  createdAt: String
+}
+
+type eventPost @model @auth(rules: [
+  { allow: public, provider: apiKey, operations: [create, read, update, delete] }
+]) {
+  id: ID!
+  content: String!
+  author: String!
+  eventID: String!
+  media: String
+  typ: String
+  createdAt: String
+}

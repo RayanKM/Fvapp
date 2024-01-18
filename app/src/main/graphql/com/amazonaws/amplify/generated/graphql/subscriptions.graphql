@@ -215,3 +215,114 @@ subscription OnDeleteComment($filter: ModelSubscriptionCommentFilterInput) {
     __typename
   }
 }
+
+subscription OnCreateEvent($filter: ModelSubscriptionEventFilterInput) {
+  onCreateEvent(filter: $filter) {
+    id
+    organizer
+    title
+    description
+    location
+    startDate
+    startTime
+    endDate
+    endTime
+    privacy
+    code
+    settings
+    members
+    background
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnUpdateEvent($filter: ModelSubscriptionEventFilterInput) {
+  onUpdateEvent(filter: $filter) {
+    id
+    organizer
+    title
+    description
+    location
+    startDate
+    startTime
+    endDate
+    endTime
+    privacy
+    code
+    settings
+    members
+    background
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnDeleteEvent($filter: ModelSubscriptionEventFilterInput) {
+  onDeleteEvent(filter: $filter) {
+    id
+    organizer
+    title
+    description
+    location
+    startDate
+    startTime
+    endDate
+    endTime
+    privacy
+    code
+    settings
+    members
+    background
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnCreateEventPost($filter: ModelSubscriptionEventPostFilterInput) {
+  onCreateEventPost(filter: $filter) {
+    id
+    content
+    author
+    eventID
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnUpdateEventPost($filter: ModelSubscriptionEventPostFilterInput) {
+  onUpdateEventPost(filter: $filter) {
+    id
+    content
+    author
+    eventID
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+subscription OnDeleteEventPost($filter: ModelSubscriptionEventPostFilterInput) {
+  onDeleteEventPost(filter: $filter) {
+    id
+    content
+    author
+    eventID
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}

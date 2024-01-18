@@ -3,6 +3,8 @@ package com.fanzverse.fvapp
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -21,8 +23,35 @@ class Login : AppCompatActivity() {
             ActivityLoginBinding.inflate(layoutInflater) // inflate the view using the ActivityLoginBinding class and assign it to the binding variable
         setContentView(binding.root) // set the content view of the activity to the root view of the inflated layout
 
+        binding.nameEt.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(charSequence: CharSequence?, start: Int, count: Int, after: Int) {
+                // Not needed for this example
+            }
+
+            override fun onTextChanged(charSequence: CharSequence?, start: Int, before: Int, count: Int) {
+                // Not needed for this example
+            }
+
+            override fun afterTextChanged(editable: Editable?) {
+                // Convert the text to lowercase
+                val lowerCaseText = editable?.toString()?.toLowerCase()
+
+                // Disable the TextWatcher temporarily to avoid an infinite loop
+                binding.nameEt.removeTextChangedListener(this)
+
+                // Update the text in the TextInputEditText
+                binding.nameEt.setText(lowerCaseText)
+
+                // Move the cursor to the end of the text
+                binding.nameEt.setSelection(lowerCaseText?.length ?: 0)
+
+                // Reattach the TextWatcher
+                binding.nameEt.addTextChangedListener(this)
+            }
+        })
+
         binding.button.setOnClickListener {
-            val username = binding.emailEt.text.toString()
+            val username = binding.nameEt.text.toString()
             val pass = binding.passET.text.toString()
             // Check if email and password are not empty
             if (username.isNotEmpty() && pass.isNotEmpty()) {

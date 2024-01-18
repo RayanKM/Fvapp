@@ -3,8 +3,10 @@ package com.fanzverse.fvapp
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 
@@ -23,6 +25,13 @@ class Splash : AppCompatActivity() {
         // Calls the superclass onCreate method, sets the layout to be displayed.
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
+        val data: Uri? = intent.data
+        if (data != null) {
+            val itemId = data.getQueryParameter("id")
+            Log.e("splshurllll", "$itemId")
+            // Update your UI with the extracted data
+        }
         val sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val isDarkModeEnabled = sharedPreferences.getBoolean("dark_mode_enabled", false)
         ThemeManager.applyTheme(isDarkModeEnabled, this)

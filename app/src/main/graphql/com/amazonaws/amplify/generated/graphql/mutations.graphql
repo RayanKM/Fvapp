@@ -254,3 +254,132 @@ mutation DeleteComment(
     __typename
   }
 }
+
+mutation CreateEvent(
+  $input: CreateEventInput!
+  $condition: ModelEventConditionInput
+) {
+  createEvent(input: $input, condition: $condition) {
+    id
+    organizer
+    title
+    description
+    location
+    startDate
+    startTime
+    endDate
+    endTime
+    privacy
+    code
+    settings
+    members
+    background
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+mutation UpdateEvent(
+  $input: UpdateEventInput!
+  $condition: ModelEventConditionInput
+) {
+  updateEvent(input: $input, condition: $condition) {
+    id
+    organizer
+    title
+    description
+    location
+    startDate
+    startTime
+    endDate
+    endTime
+    privacy
+    code
+    settings
+    members
+    background
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+mutation DeleteEvent(
+  $input: DeleteEventInput!
+  $condition: ModelEventConditionInput
+) {
+  deleteEvent(input: $input, condition: $condition) {
+    id
+    organizer
+    title
+    description
+    location
+    startDate
+    startTime
+    endDate
+    endTime
+    privacy
+    code
+    settings
+    members
+    background
+    status
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+mutation CreateEventPost(
+  $input: CreateEventPostInput!
+  $condition: ModelEventPostConditionInput
+) {
+  createEventPost(input: $input, condition: $condition) {
+    id
+    content
+    author
+    eventID
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+mutation UpdateEventPost(
+  $input: UpdateEventPostInput!
+  $condition: ModelEventPostConditionInput
+) {
+  updateEventPost(input: $input, condition: $condition) {
+    id
+    content
+    author
+    eventID
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+
+mutation DeleteEventPost(
+  $input: DeleteEventPostInput!
+  $condition: ModelEventPostConditionInput
+) {
+  deleteEventPost(input: $input, condition: $condition) {
+    id
+    content
+    author
+    eventID
+    media
+    typ
+    createdAt
+    updatedAt
+    __typename
+  }
+}

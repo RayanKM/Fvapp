@@ -13,8 +13,8 @@ android {
         applicationId = "com.fanzverse.fvapp"
         minSdk = 24
         targetSdk = 33
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -52,16 +52,13 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-
     implementation ("com.amplifyframework:aws-auth-cognito:2.13.0")
     implementation ("com.amplifyframework:core:2.13.0")
     implementation ("com.amplifyframework:aws-api:2.13.0")
     implementation ("com.amplifyframework:aws-storage-s3:2.13.0")
     implementation ("com.amplifyframework:aws-datastore:2.13.0")
     implementation ("com.amazonaws:aws-android-sdk-appsync:3.3.1")
-
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
-
 
     //toast
     implementation ("com.github.Spikeysanju:MotionToast:1.4")
@@ -78,11 +75,21 @@ dependencies {
     //Glide library
     implementation ("com.github.bumptech.glide:glide:4.12.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
+    implementation ("jp.wasabeef:glide-transformations:4.3.0")
 
-
+    //imagePicker
     implementation ("com.github.dhaval2404:imagepicker:2.1")
 
     //Time
     implementation ("com.squareup.okhttp3:okhttp:4.9.1")
+
+    //Fading
+    implementation ("com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0")
+
+    //Dialog
+    implementation ("com.github.f0ris.sweetalert:library:1.6.2")
+
+
+
 
 }

@@ -1,11 +1,14 @@
 package com.fanzverse.fvapp
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.auth.options.AuthSignOutOptions
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.datastore.generated.model.Usr
 import com.fanzverse.fvapp.databinding.ActivityMainBinding
 
 // Import other query classes as needed
@@ -13,12 +16,26 @@ import com.fanzverse.fvapp.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity(), Communicator {
     companion object {
         var userN: String? = null?:"" // Change YourType to the actual type of your global variable
+        lateinit var userID: Usr // Change YourType to the actual type of your global variable
     }
     private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        if (Intent.ACTION_VIEW == intent.action) {
+            val uri = intent.data
+            val itemID = uri?.getQueryParameter("itemID")
+            // Handle the itemID as needed
+            Log.e("checkingcheck00000", "SIUU $itemID")
+        }
+
+        // Use 'deepLinkString' for sharing or navigating within your app
+
+
+
+
         val options = AuthSignOutOptions.builder()
             .globalSignOut(true)
             .build()
@@ -26,7 +43,7 @@ class MainActivity : AppCompatActivity(), Communicator {
             { authSession ->
                 val isSignedIn = authSession.isSignedIn
                 if (isSignedIn) {
-                    Log.e("MyAmplifyApp", "yes")
+                    Log.e("checkingcheck", "yes")
                     supportFragmentManager.beginTransaction().apply {
                         replace(R.id.mn, Home())
                         commit()
@@ -34,22 +51,34 @@ class MainActivity : AppCompatActivity(), Communicator {
                     Amplify.Auth.getCurrentUser(
                         { user ->
                             userN = user.username
-                            Log.e("MyAmplifyApp", "Logged in as: $userN")
+                            Log.e("checkingcheck", "Logged in as: $userN")
+                            Amplify.API.query(
+                                ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(user.username)),
+                                { postResponse ->
+                                    postResponse.data.forEach { post ->
+                                        userID = post
+                                    }
+                                },
+                                { postError ->
+                                    Log.e("checkingcheck", "Query post failure", postError)
+                                }
+                            )
                         },
                         { error ->
                             // Handle the error when fetching the current user
-                            Log.e("MyAmplifyApp", "Error fetching current user: $error")
+                            Log.e("checkingcheck", "Error fetching current user: $error")
                         }
                     )
+
                 }
                 else {
-                    Log.e("MyAmplifyApp", "Not logged in")
+                    Log.e("checkingcheck", "Not logged in")
                     startActivity(Intent(this, Login::class.java))
                 }
             },
             { error ->
                 // Handle the error when fetching the auth session
-                Log.e("MyAmplifyApp", "Error fetching auth session: $error")
+                Log.e("checkingcheck", "Error fetching auth session: $error")
             }
         )
         binding.Navbt.setOnItemSelectedListener {
@@ -94,10 +123,21 @@ class MainActivity : AppCompatActivity(), Communicator {
         transaction.addToBackStack(null)
         transaction.commit()
     }
-    override fun passid(id: String) {
+    override fun passid(id: String, to:String) {
         val bundle = Bundle()
         bundle.putString("id", id) // Replace "post" with the key you want to use
-
+        bundle.putString("to", to) // Replace "post" with the key you want to use
+        // Perform the fragment transaction
+        val transaction = this.supportFragmentManager.beginTransaction()
+        val frg = PostDetail()
+        frg.arguments = bundle
+        transaction.replace(R.id.mn, frg)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+    override fun passid2(id: String) {
+        val bundle = Bundle()
+        bundle.putString("id", id) // Replace "post" with the key you want to use
         // Perform the fragment transaction
         val transaction = this.supportFragmentManager.beginTransaction()
         val frg = Profile()

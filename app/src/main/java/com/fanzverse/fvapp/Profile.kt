@@ -5,18 +5,22 @@ import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.amplifyframework.api.graphql.model.ModelMutation
 import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.auth.cognito.result.AWSCognitoAuthSignOutResult
@@ -33,6 +37,7 @@ import com.fanzverse.fvapp.databinding.EditbioBinding
 import com.fanzverse.fvapp.databinding.FragmentProfileBinding
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import gen._base._base_java__assetres.srcjar.R.id.async
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -52,7 +57,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
     private lateinit var communicator: Communicator
     private var postListWithComments = mutableListOf<PosDataModel>()
     val n = MainActivity.userN
-
+    val User = MainActivity.userID
     private lateinit var binding: FragmentProfileBinding
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,11 +67,9 @@ class Profile : Fragment(R.layout.fragment_profile) {
         binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.ppgfp.clipToOutline = true
@@ -77,25 +80,41 @@ class Profile : Fragment(R.layout.fragment_profile) {
         binding.switchDarkMode.isChecked = sharedPreferences.getBoolean("dark_mode_enabled", false)
 
 
-        val n = MainActivity.userN
         val bottomSheetBehavior = BottomSheetBehavior.from(binding.sheet2)
         bottomSheetBehavior.peekHeight = 0
         bottomSheetBehavior.isDraggable = false
 
         communicator = activity as Communicator
         var post: String? = arguments?.getString("id")
-        binding.down.setOnClickListener {
-            val dpToPx = resources.displayMetrics.density
-            val desiredHeightDp = 0 // Desired peek height in dp
-            val desiredHeightPx = (desiredHeightDp * dpToPx).toInt()
 
-            val animator = ValueAnimator.ofInt((250*dpToPx).toInt(), desiredHeightPx)
+        if (post == null || post == n){
+            fetch(n!!)
+            fetchLikes(n!!)
+
+        }
+        else{
+            fetch(post)
+            fetchPost(post)
+            fetchLikes(post)
+            binding.more.visibility = View.GONE
+            binding.onit.visibility = View.GONE
+            checkfollow(post.toString(),n!!)
+        }
+
+        binding.down.setOnClickListener {
+            // Calculate the screen height for the animation.
+            val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+
+            // Create an animator for the animation of the first bottom sheet.
+            val animator = ValueAnimator.ofInt(screenHeight, 0)
             animator.addUpdateListener { valueAnimator ->
+                // Update the peek height of the first bottom sheet during the animation.
                 val height = valueAnimator.animatedValue as Int
                 bottomSheetBehavior.peekHeight = height
             }
-            animator.duration = 500
-            animator.start()
+            animator.duration = 500  // Set the duration of the animation.
+            animator.start()  // Start the animation.
+
         }
         binding.more.setOnClickListener {
             binding.switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
@@ -107,20 +126,17 @@ class Profile : Fragment(R.layout.fragment_profile) {
                 // Apply the theme change
                 ThemeManager.applyTheme(isChecked, requireActivity() as AppCompatActivity)
             }
-            val bottomSheetBehavior = BottomSheetBehavior.from(binding.sheet2)
-            bottomSheetBehavior.peekHeight = 0
-            bottomSheetBehavior.isDraggable = false
-            val dpToPx = resources.displayMetrics.density
-            val desiredHeightDp = 250 // Desired peek height in dp
-            val desiredHeightPx = (desiredHeightDp * dpToPx).toInt()
-
-            val animator = ValueAnimator.ofInt(0, desiredHeightPx)
+            // Calculate the screen height for the animation.
+            val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+            // Create an animator for the animation of the first bottom sheet.
+            val animator = ValueAnimator.ofInt(0, screenHeight)
             animator.addUpdateListener { valueAnimator ->
+                // Update the peek height of the first bottom sheet during the animation.
                 val height = valueAnimator.animatedValue as Int
                 bottomSheetBehavior.peekHeight = height
             }
-            animator.duration = 500
-            animator.start()
+            animator.duration = 500  // Set the duration of the animation.
+            animator.start()  // Start the animation.
         }
         binding.edtpfp.setOnClickListener {
             ImagePicker.with(this)
@@ -134,7 +150,6 @@ class Profile : Fragment(R.layout.fragment_profile) {
             val view = binding.root
             val builder = AlertDialog.Builder(requireActivity())
             builder.setView(view)
-
             val dialog = builder.create()
             dialog.show()
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -154,8 +169,19 @@ class Profile : Fragment(R.layout.fragment_profile) {
                                 ModelMutation.update(updatedUser),
                                 { updateResponse ->
                                     fetch(n!!)
-                                    // Handle the successful update
-                                    dialog.dismiss()
+                                    activity?.runOnUiThread {
+                                        val dpToPx = resources.displayMetrics.density
+                                        val animator = ValueAnimator.ofInt((250*dpToPx).toInt(), 0)
+                                        animator.addUpdateListener { valueAnimator ->
+                                            val height = valueAnimator.animatedValue as Int
+                                            bottomSheetBehavior.peekHeight = height
+                                        }
+                                        animator.duration = 500
+                                        animator.start()
+                                        // Handle the successful update
+                                        dialog.dismiss()
+                                    }
+
                                     Log.i("Amplify", "User updated: ${updateResponse.data}")
                                 },
                                 { error ->
@@ -174,46 +200,20 @@ class Profile : Fragment(R.layout.fragment_profile) {
                 dialog.dismiss()
             }
         }
-
-
-        if (post == null || post == n){
-            fetch(n!!)
-            fetchPost(n!!)
-            fetchLikes(n!!)
-            binding.mainRecyclerview.apply {
-                layoutManager = LinearLayoutManager(this.context)
-                adapter = HomeAdapter(requireContext(), postListWithComments).apply {
-                    setOnItemClickListener(object : HomeAdapter.onItemClickListener {
-                        override fun onItemClick(position: Int) {
-                            val post = postListWithComments[position]
-                            communicator.passdata(post)
-                        }
-                        override fun onLike(position: Int) {
-                            val postid = postListWithComments[position].postID
-                            val to = postListWithComments[position].postAuthor
-                            likePost(n, postid, to)
-                        }
-                    })
-                }
-            }
-        }
-        else{
-            fetch(post)
-            fetchPost(post)
-            fetchLikes(post)
-            binding.more.visibility = View.GONE
-            binding.posts.visibility = View.GONE
-            checkfollow(post.toString(),n!!)
-        }
-
         binding.posts.setOnClickListener {
+            binding.filter.visibility = View.GONE
+            fetchPost(n)
+            binding.mainRecyclerview.visibility = View.VISIBLE
+        }
+        binding.gallery.setOnClickListener {
+            fetchGalleryAll()
+            binding.filter.visibility = View.VISIBLE
             binding.mainRecyclerview.visibility = View.VISIBLE
         }
         binding.logout.setOnClickListener {
             val options = AuthSignOutOptions.builder()
                 .globalSignOut(true)
                 .build()
-
             Amplify.Auth.signOut(options) { signOutResult ->
                 when(signOutResult) {
                     is AWSCognitoAuthSignOutResult.CompleteSignOut -> {
@@ -229,11 +229,53 @@ class Profile : Fragment(R.layout.fragment_profile) {
                 }
             }
         }
+        binding.dltacc.setOnClickListener {
+            showDeleteConfirmationDialog(0)
+        }
+        binding.dltmedia.setOnClickListener {
+            showDeleteConfirmationDialog(1)
+        }
+        binding.dltdata.setOnClickListener {
+            showDeleteConfirmationDialog(2)
+        }
         binding.snd.setOnClickListener {
             sendFollowRequest(n,post.toString())
         }
+        binding.filter.setOnClickListener { view ->
+            showDropdownMenu(view)
+        }
+
     }
 
+    private fun showDeleteConfirmationDialog(case:Int) {
+        val sweetAlertDialog = SweetAlertDialog(requireContext(), SweetAlertDialog.WARNING_TYPE)
+            .setTitleText("Are you sure?")
+            .setContentText("This action cannot be undone.")
+            .setCancelText("Cancel")
+            .setConfirmText("Delete")
+            .showCancelButton(true)
+            .setCancelClickListener { sDialog ->
+                sDialog.dismissWithAnimation()
+                // Handle cancel button click
+            }
+            .setConfirmClickListener { sDialog ->
+                sDialog.dismissWithAnimation()
+                // Handle confirm (delete) button click
+                when (case) {
+                    0 -> {
+                        deleteAccount(User)
+                    }
+                    1 -> {
+                        deleteMedia(User)
+                    }
+                    else -> {
+                        deleteData(User)
+                    }
+                }
+            }
+
+        sweetAlertDialog.show()
+    }
     fun fetch(id: String) {
         Log.e("azzzz", "fetch $id")
         Amplify.API.query(
@@ -270,7 +312,6 @@ class Profile : Fragment(R.layout.fragment_profile) {
             .toUser(to)
             .status(FollowRequestStatus.PENDING)
             .build()
-
         Amplify.API.mutate(
             ModelMutation.create(request),
             { response ->
@@ -298,6 +339,22 @@ class Profile : Fragment(R.layout.fragment_profile) {
         )
     }
     fun fetchPost(id: String) {
+        binding.mainRecyclerview.apply {
+            layoutManager = LinearLayoutManager(this.context)
+            adapter = HomeAdapter(requireContext(), postListWithComments).apply {
+                setOnItemClickListener(object : HomeAdapter.onItemClickListener {
+                    override fun onItemClick(position: Int) {
+                        val post = postListWithComments[position]
+                        communicator.passid(post.postID, post.postAuthor)
+                    }
+                    override fun onLike(position: Int) {
+                        val postid = postListWithComments[position].postID
+                        val to = postListWithComments[position].postAuthor
+                        likePost(n!!, postid, to)
+                    }
+                })
+            }
+        }
         Amplify.API.query(
             ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id)),
             { postResponse ->
@@ -316,7 +373,6 @@ class Profile : Fragment(R.layout.fragment_profile) {
                         val cm = async { cmt(postId) }
                         val lk = async { lks(postId) }
                         val pf = async { getPfp(id) }
-
                         // Create a PostWithComments object and add it to the list
                         val postWithComments =
                             PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await(), postDate)
@@ -334,6 +390,28 @@ class Profile : Fragment(R.layout.fragment_profile) {
             }
         )
     }
+    fun calculateTimeAgo(createdAt: String): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        val currentDate = Calendar.getInstance().time
+        val postDate = sdf.parse(createdAt)
+        val timeDifferenceMillis = Math.abs(currentDate.time - postDate.time)
+
+        val minuteMillis: Long = 60 * 1000
+        val hourMillis: Long = 60 * minuteMillis
+        val dayMillis: Long = 24 * hourMillis
+        val weekMillis: Long = 7 * dayMillis
+        val monthMillis: Long = 30 * dayMillis
+
+        return when {
+            timeDifferenceMillis < minuteMillis -> "${timeDifferenceMillis / 1000} secs ago"
+            timeDifferenceMillis < hourMillis -> "${timeDifferenceMillis / minuteMillis} mins ago"
+            timeDifferenceMillis < dayMillis -> "${timeDifferenceMillis / hourMillis} hours ago"
+            timeDifferenceMillis < weekMillis -> "${timeDifferenceMillis / dayMillis} days ago"
+            timeDifferenceMillis < monthMillis -> "${timeDifferenceMillis / weekMillis} weeks ago"
+            else -> "${timeDifferenceMillis / monthMillis} months ago"
+        }
+    }
     fun checkfollow(user:String,n:String){
         Amplify.API.query(
             ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(n)),
@@ -349,7 +427,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
                                         setOnItemClickListener(object : HomeAdapter.onItemClickListener {
                                             override fun onItemClick(position: Int) {
                                                 val post = postListWithComments[position]
-                                                communicator.passdata(post)
+                                                communicator.passid(post.postID, post.postAuthor)
                                             }
                                             override fun onLike(position: Int) {
 
@@ -361,7 +439,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
                         }else{
                             activity?.runOnUiThread {
                                 binding.snd.visibility = View.VISIBLE
-                                binding.posts.visibility = View.GONE
+                                binding.onit.visibility = View.GONE
 
                             }
                         }
@@ -369,7 +447,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
                     else{
                         activity?.runOnUiThread {
                             binding.snd.visibility = View.VISIBLE
-                            binding.posts.visibility = View.GONE
+                            binding.onit.visibility = View.GONE
 
                         }
                     }
@@ -548,28 +626,348 @@ class Profile : Fragment(R.layout.fragment_profile) {
             Toast.makeText(activity, "Task Cancelled", Toast.LENGTH_SHORT).show()
         }
     }
+    data class AfterDelete(val User: Int, val Comment: Int, val Like: Int)
+    private suspend fun DeleteUser(id: Usr): AfterDelete {
+        val deferred = CompletableDeferred<AfterDelete>() // Create a CompletableDeferred
+        // Initialize values to 0
+        var likeValue = 0
+        var commentValue = 0
+        var userValue = 0
+        Amplify.API.query(
+            ModelQuery.list(Like::class.java, Like.USERNAME.contains(id.username)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    Amplify.API.mutate(
+                        ModelMutation.delete(post),
+                        {
+                        },
+                        { Log.e("MyAmplifyApp", "Delete failed", it) }
+                    )
+                }
+                likeValue = 1
+                if (likeValue == 1 && commentValue == 1 && userValue == 1) {
+                    // All operations are completed, resolve the deferred
+                    deferred.complete(AfterDelete(likeValue, commentValue, userValue))
+                }
+                Log.e("MyAmplifyApp5", "DELETED")
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
+        Amplify.API.query(
+            ModelQuery.list(Comment::class.java, Comment.AUTHOR.contains(id.username)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    Amplify.API.mutate(
+                        ModelMutation.delete(post),
+                        {
+                        },
+                        { Log.e("MyAmplifyApp", "Delete failed", it) }
+                    )
+                }
+                commentValue = 1
+                if (likeValue == 1 && commentValue == 1 && userValue == 1) {
+                    // All operations are completed, resolve the deferred
+                    deferred.complete(AfterDelete(likeValue, commentValue, userValue))
+                }
+                Log.e("MyAmplifyApp5", "DELETED")
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id.username)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    Amplify.API.mutate(
+                        ModelMutation.delete(post),
+                        {
+                        },
+                        { Log.e("MyAmplifyApp", "Delete failed", it) }
+                    )
+                }
+                userValue = 1
+                if (likeValue == 1 && commentValue == 1 && userValue == 1) {
+                    // All operations are completed, resolve the deferred
+                    deferred.complete(AfterDelete(likeValue, commentValue, userValue))
+                }
+                //here we should put value User = 1
+                Log.e("MyAmplifyApp5", "DELETED")
 
-    fun calculateTimeAgo(createdAt: String): String {
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        sdf.timeZone = TimeZone.getTimeZone("UTC")
-        val currentDate = Calendar.getInstance().time
-        val postDate = sdf.parse(createdAt)
-        val timeDifferenceMillis = Math.abs(currentDate.time - postDate.time)
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
 
-        val minuteMillis: Long = 60 * 1000
-        val hourMillis: Long = 60 * minuteMillis
-        val dayMillis: Long = 24 * hourMillis
-        val weekMillis: Long = 7 * dayMillis
-        val monthMillis: Long = 30 * dayMillis
-
-        return when {
-            timeDifferenceMillis < minuteMillis -> "${timeDifferenceMillis / 1000} secs ago"
-            timeDifferenceMillis < hourMillis -> "${timeDifferenceMillis / minuteMillis} mins ago"
-            timeDifferenceMillis < dayMillis -> "${timeDifferenceMillis / hourMillis} hours ago"
-            timeDifferenceMillis < weekMillis -> "${timeDifferenceMillis / dayMillis} days ago"
-            timeDifferenceMillis < monthMillis -> "${timeDifferenceMillis / weekMillis} weeks ago"
-            else -> "${timeDifferenceMillis / monthMillis} months ago"
-        }
+        return deferred.await()
     }
+    fun deleteAccount(id: Usr){
+        val bottomSheetBehavior = BottomSheetBehavior.from(binding.sheet2)
+        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
 
+        // Create an animator for the animation of the first bottom sheet.
+        val animator = ValueAnimator.ofInt(screenHeight, 0)
+        animator.addUpdateListener { valueAnimator ->
+            // Update the peek height of the first bottom sheet during the animation.
+            val height = valueAnimator.animatedValue as Int
+            bottomSheetBehavior.peekHeight = height
+        }
+        animator.duration = 500  // Set the duration of the animation.
+        animator.start()  // Start the animation.
+        binding.loading.visibility = View.VISIBLE
+        runBlocking {
+            val Check = async { DeleteUser(id) }
+
+            if (Check.await().Like == 1 && Check.await().Comment == 1 && Check.await().User == 1){
+                Amplify.API.mutate(
+                    ModelMutation.delete(id),
+                    {
+                        Amplify.Auth.deleteUser(
+                            {
+                                activity?.runOnUiThread {
+                                    binding.loading.visibility = View.GONE
+                                    Log.i("AuthQuickStart", "ALL DONE DELETE")
+                                    val intent = Intent(requireContext(), Login::class.java)
+                                    startActivity(intent)
+                                }
+                            },
+                            { error ->
+                                // Handle the error
+                                Log.e("AuthQuickStart", "Error deleting user", error)
+                            }
+                        )
+
+                    },
+                    { Log.e("MyAmplifyApp", "Delete failed", it) }
+                )
+            }
+        }
+
+    }
+    fun deleteMedia(id: Usr){
+        val bottomSheetBehavior = BottomSheetBehavior.from(binding.sheet2)
+        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+
+        // Create an animator for the animation of the first bottom sheet.
+        val animator = ValueAnimator.ofInt(screenHeight, 0)
+        animator.addUpdateListener { valueAnimator ->
+            // Update the peek height of the first bottom sheet during the animation.
+            val height = valueAnimator.animatedValue as Int
+            bottomSheetBehavior.peekHeight = height
+        }
+        animator.duration = 500  // Set the duration of the animation.
+        animator.start()  // Start the animation.
+        binding.loading.visibility = View.VISIBLE
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id.username)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    if (post.media.equals("https://media172200-yandev.s3.ap-south-1.amazonaws.com/public/")){
+                        Amplify.API.mutate(
+                            ModelMutation.delete(post),
+                            {
+                            },
+                            { Log.e("MyAmplifyApp", "Delete failed", it) }
+                        )
+                    }
+                }
+                binding.loading.visibility = View.GONE
+                Log.e("MyAmplifyApp5", "afterpost")
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
+    }
+    fun deleteData(id: Usr){
+        val bottomSheetBehavior = BottomSheetBehavior.from(binding.sheet2)
+        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+
+        // Create an animator for the animation of the first bottom sheet.
+        val animator = ValueAnimator.ofInt(screenHeight, 0)
+        animator.addUpdateListener { valueAnimator ->
+            // Update the peek height of the first bottom sheet during the animation.
+            val height = valueAnimator.animatedValue as Int
+            bottomSheetBehavior.peekHeight = height
+        }
+        animator.duration = 500  // Set the duration of the animation.
+        animator.start()  // Start the animation.
+        binding.loading.visibility = View.VISIBLE
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(id.username)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    Amplify.API.mutate(
+                        ModelMutation.delete(post),
+                        {
+                        },
+                        { Log.e("MyAmplifyApp", "Delete failed", it) }
+                    )
+                }
+                binding.loading.visibility = View.GONE
+                Log.e("MyAmplifyApp5", "afterpost")
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
+    }
+    fun fetchGalleryAll(){
+        var allPosts = mutableListOf<PosDataModelLite>()
+        binding.mainRecyclerview.apply {
+            layoutManager = GridLayoutManager(requireActivity().applicationContext, 3)
+            adapter = MomentAdapter(requireContext(), allPosts).apply {
+                setOnItemClickListener(object : MomentAdapter.onItemClickListener {
+                    override fun onItemClick(position: Int) {
+                        val post = allPosts[position]
+                        communicator.passid(post.postID, post.postAuthor)
+                    }
+                })
+            }
+        }
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(n)),
+            { postResponse ->
+                val sortedPosts = postResponse.data.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
+                // Get the post IDs of the first three posts
+                sortedPosts.forEach { postId ->
+                    if (postId.media.contains("https://media172200-yandev.s3.ap-south-1.amazonaws.com/public/")){
+                        val postWithComments = PosDataModelLite(postId.author, postId.id, postId.media,postId.typ)
+                        allPosts.add(postWithComments)
+                        activity?.runOnUiThread {
+                            // Notify the adapter that the data has changed
+                            binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+                        }
+                    }
+                }
+                Log.e("MyAmplifyApp7", "afterpost")
+            },
+            { postError ->
+                Log.e("MyAmplifyApp7", "Query post failure", postError)
+            }
+        )
+    }
+    fun fetchGalleryMonthly(){
+        val galleryList: MutableList<GalleryModel> = mutableListOf()
+        binding.mainRecyclerview.apply {
+            layoutManager = LinearLayoutManager(this.context)
+            adapter = GalleryAdapter(requireContext(), galleryList).apply {
+                setOnItemClickListener(object : GalleryAdapter.onItemClickListener {
+                    override fun onItemClick(position: Int) {
+                    }
+                })
+            }
+        }
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(n)),
+            { postResponse ->
+                val sortedPosts = postResponse.data.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                val outputFormat = SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
+
+
+                // Iterate over the posts and group them by month
+                sortedPosts.forEach { postId ->
+                    if (postId.media.contains("https://media172200-yandev.s3.ap-south-1.amazonaws.com/public/")){
+                        val date = inputFormat.parse(postId.createdAt)
+                        val formattedDate = outputFormat.format(date)
+
+                        // Find or create a GalleryModel for the current month
+                        val galleryModel = galleryList.find { it.date == formattedDate }
+                            ?: GalleryModel(formattedDate, mutableListOf()).also { galleryList.add(it) }
+
+
+                        // Add the current post to the list for the current month
+                        galleryModel.gallery.add(PosDataModelLite(postId.author, postId.id, postId.media,postId.typ))
+                        activity?.runOnUiThread {
+                            // Notify the adapter that the data has changed
+                            binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+                        }
+                    }
+                }
+
+                // Iterate over the list of GalleryModel instances
+                Log.e("datecheck", "afterpost")
+            },
+            { postError ->
+                Log.e("datecheck", "Query post failure", postError)
+            }
+        )
+    }
+    fun fetchGalleryYearly(){
+        val galleryList: MutableList<GalleryModel> = mutableListOf()
+        binding.mainRecyclerview.apply {
+            layoutManager = LinearLayoutManager(this.context)
+            adapter = GalleryAdapter(requireContext(), galleryList).apply {
+                setOnItemClickListener(object : GalleryAdapter.onItemClickListener {
+                    override fun onItemClick(position: Int) {
+                    }
+                })
+            }
+        }
+        Amplify.API.query(
+            ModelQuery.list(Post::class.java, Post.AUTHOR.contains(n)),
+            { postResponse ->
+                val sortedPosts = postResponse.data.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                val outputFormat = SimpleDateFormat("yyyy", Locale.ENGLISH)
+
+
+                // Iterate over the posts and group them by month
+                sortedPosts.forEach { postId ->
+                    if (postId.media.contains("https://media172200-yandev.s3.ap-south-1.amazonaws.com/public/")){
+                        val date = inputFormat.parse(postId.createdAt)
+                        val formattedDate = outputFormat.format(date)
+
+                        // Find or create a GalleryModel for the current month
+                        val galleryModel = galleryList.find { it.date == formattedDate }
+                            ?: GalleryModel(formattedDate, mutableListOf()).also { galleryList.add(it) }
+
+
+                        // Add the current post to the list for the current month
+                        galleryModel.gallery.add(PosDataModelLite(postId.author, postId.id, postId.media,postId.typ))
+                        activity?.runOnUiThread {
+                            // Notify the adapter that the data has changed
+                            binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+                        }
+                    }
+                }
+
+                // Iterate over the list of GalleryModel instances
+                Log.e("datecheck", "afterpost")
+            },
+            { postError ->
+                Log.e("datecheck", "Query post failure", postError)
+            }
+        )
+    }
+    private fun showDropdownMenu(anchorView: View) {
+        val popupMenu = PopupMenu(requireContext(), anchorView)
+        val menuInflater = popupMenu.menuInflater
+        menuInflater.inflate(R.menu.nav3, popupMenu.menu)
+
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.all -> {
+                    fetchGalleryAll()
+                    true
+                }
+                R.id.monthly -> {
+                    fetchGalleryMonthly()
+                    true
+                }
+                R.id.yearly -> {
+                    fetchGalleryYearly()
+                    true
+                }
+                // Add more items as needed
+                else -> false
+            }
+        }
+
+        popupMenu.show()
+    }
 }
