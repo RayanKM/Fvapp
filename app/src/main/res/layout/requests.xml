@@ -51,15 +51,16 @@
                 android:layout_height="wrap_content"
                 android:gravity="end|bottom"
                 android:orientation="horizontal">
+
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/accept"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
+                    android:layout_height="30dp"
                     android:layout_marginHorizontal="10dp"
                     android:backgroundTint="#09AD2D"
                     android:text="Accept"
                     android:textColor="@color/white"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/decline"
                     android:layout_width="wrap_content"

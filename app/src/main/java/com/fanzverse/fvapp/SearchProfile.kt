@@ -118,7 +118,7 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
                 if (!newText.isNullOrBlank()) {
                     // Delayed search when there is a non-empty query
                     searchHandler?.postDelayed({
-                        fetch(newText.orEmpty())
+                        fetch(newText.toLowerCase())
                     }, 300) // Adjust the delay as needed
                 }
                 return true
@@ -280,22 +280,7 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
 
             binding.cancelEvent.setOnClickListener {
                 hideKeyboard(it)
-                Amplify.API.query(
-                    ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(n)),
-                    { postResponse ->
-                        postResponse.data.forEach { post ->
-                            users.add(post)
-                            activity?.runOnUiThread {
-                                // Notify the adapter that the data has changed
-                                closeSheet(0)
-                            }
-                        }
-                    },
-                    { postError ->
-                        Log.e("MyAmplifyApp", "Query post failure", postError)
-                    }
-                )
-
+                closeSheet(0)
             }
             binding.privacySwitch.setOnCheckedChangeListener { buttonView, isChecked ->
                 // Handle the switch state change
@@ -388,37 +373,35 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
         )
     }
     fun fetch2(id: String) {
-        users.clear()
-        if (id != null){
-            Amplify.API.query(
-                ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
-                { postResponse ->
-                    postResponse.data.forEach { post ->
-                        if (post.username == n){
-                            val modifiedPost = post.copyOfBuilder().id(post.id).bio(post.news).build()
+        users2.clear()
+        Amplify.API.query(
+            ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    if (post.username == n){
+                        val modifiedPost = post.copyOfBuilder().id(post.id).bio(post.news).build()
+                        users2.add(modifiedPost)
+                        activity?.runOnUiThread {
+                            // Notify the adapter that the data has changed
+                            binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
+                        }
+                    }else{
+                        runBlocking {
+                            val pf = async { getnews(n!!,post.username) }
+                            val modifiedPost = post.copyOfBuilder().id(post.id).bio(pf.await()).build()
                             users2.add(modifiedPost)
                             activity?.runOnUiThread {
                                 // Notify the adapter that the data has changed
                                 binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
                             }
-                        }else{
-                            runBlocking {
-                                val pf = async { getnews(n!!,post.username) }
-                                val modifiedPost = post.copyOfBuilder().id(post.id).bio(pf.await()).build()
-                                users2.add(modifiedPost)
-                                activity?.runOnUiThread {
-                                    // Notify the adapter that the data has changed
-                                    binding.mainRecyclerview2.adapter?.notifyDataSetChanged()
-                                }
-                            }
                         }
                     }
-                },
-                { postError ->
-                    Log.e("MyAmplifyApp", "Query post failure", postError)
                 }
-            )
-        }
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
     }
     fun fetch(id: String) {
         users.clear()
@@ -692,7 +675,6 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
         val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
-
     fun fetchEventPost() {
         Amplify.API.query(
             ModelQuery.list(Event::class.java, Event.BACKGROUND.contains("https")),
@@ -727,210 +709,6 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
                                         }
                                     })
                                 binding.eventNamepv.text = postId.title
-
-                                binding.e1.setOnClickListener {
-                                    if (postId.privacy && postId.members == null || postId.privacy && !postId.members.contains(n)) {
-                                        val binding = EntercodeBinding.inflate(layoutInflater)
-                                        val view = binding.root
-                                        val builder = AlertDialog.Builder(requireActivity())
-                                        builder.setView(view)
-                                        val dialog = builder.create()
-                                        dialog.show()
-                                        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-                                        dialog.setCancelable(false)
-                                        binding.snd.setOnClickListener {
-                                            hideKeyboard(it)
-                                            val code = binding.codetxt.text.toString()
-                                            Amplify.API.query(
-                                                ModelQuery.list(
-                                                    Event::class.java,
-                                                    Event.ID.contains(postId.id)
-                                                ),
-                                                { response ->
-                                                    response.data.forEach { result ->
-                                                        if (code == result.code) {
-                                                            var members = result.members
-                                                            if (members == null){
-                                                                members = mutableListOf()
-                                                                members.add(n)
-                                                                val updatedMembers =
-                                                                    result.copyOfBuilder().id(result.id)
-                                                                        .members(members)
-                                                                        .build()
-                                                                // Perform the update mutation with the modified user object
-                                                                Amplify.API.mutate(
-                                                                    ModelMutation.update(updatedMembers),
-                                                                    { updateResponse ->
-                                                                        // Handle the successful update
-                                                                        Log.i(
-                                                                            "Amplify",
-                                                                            "User updated: ${updateResponse.data}"
-                                                                        )
-                                                                        activity?.runOnUiThread {
-                                                                            dialog.dismiss()
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Enjoy the event!",
-                                                                                "You just joined the event.",
-                                                                                MotionToastStyle.SUCCESS,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                            Handler().postDelayed({
-                                                                                activity?.runOnUiThread {
-                                                                                    val bundle = Bundle()
-                                                                                    bundle.putString(
-                                                                                        "id",
-                                                                                        postId.id
-                                                                                    ) // Replace "post" with the key you want to use
-                                                                                    // Perform the fragment transaction
-                                                                                    val transaction =
-                                                                                        requireActivity().supportFragmentManager.beginTransaction()
-                                                                                    val frg = EventPage()
-                                                                                    frg.arguments = bundle
-                                                                                    transaction.replace(
-                                                                                        R.id.mn,
-                                                                                        frg
-                                                                                    )
-                                                                                    transaction.addToBackStack(
-                                                                                        null
-                                                                                    )
-                                                                                    transaction.commit()
-                                                                                }
-                                                                            }, 2000)
-                                                                        }
-
-                                                                    },
-                                                                    { error ->
-                                                                        // Handle the error
-                                                                        activity?.runOnUiThread {
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Error",
-                                                                                error.message.toString(),
-                                                                                MotionToastStyle.WARNING,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                        }
-
-                                                                    }
-                                                                )
-                                                            }
-                                                            else{
-                                                                members.add(n)
-                                                                val updatedMembers =
-                                                                    result.copyOfBuilder().id(result.id)
-                                                                        .members(members)
-                                                                        .build()
-                                                                // Perform the update mutation with the modified user object
-                                                                Amplify.API.mutate(
-                                                                    ModelMutation.update(updatedMembers),
-                                                                    { updateResponse ->
-                                                                        // Handle the successful update
-                                                                        Log.i(
-                                                                            "Amplify",
-                                                                            "User updated: ${updateResponse.data}"
-                                                                        )
-                                                                        activity?.runOnUiThread {
-                                                                            dialog.dismiss()
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Enjoy the event!",
-                                                                                "You just joined the event.",
-                                                                                MotionToastStyle.SUCCESS,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                            Handler().postDelayed({
-                                                                                activity?.runOnUiThread {
-                                                                                    val bundle = Bundle()
-                                                                                    bundle.putString(
-                                                                                        "id",
-                                                                                        postId.id
-                                                                                    ) // Replace "post" with the key you want to use
-                                                                                    // Perform the fragment transaction
-                                                                                    val transaction =
-                                                                                        requireActivity().supportFragmentManager.beginTransaction()
-                                                                                    val frg = EventPage()
-                                                                                    frg.arguments = bundle
-                                                                                    transaction.replace(
-                                                                                        R.id.mn,
-                                                                                        frg
-                                                                                    )
-                                                                                    transaction.addToBackStack(
-                                                                                        null
-                                                                                    )
-                                                                                    transaction.commit()
-                                                                                }
-                                                                            }, 2000)
-                                                                        }
-
-                                                                    },
-                                                                    { error ->
-                                                                        // Handle the error
-                                                                        activity?.runOnUiThread {
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Error",
-                                                                                error.message.toString(),
-                                                                                MotionToastStyle.WARNING,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                        }
-
-                                                                    }
-                                                                )
-                                                            }
-                                                        }
-                                                        else {
-                                                            activity?.runOnUiThread {
-                                                                MotionToast.createColorToast(
-                                                                    requireActivity(),
-                                                                    "The code is incorrect",
-                                                                    "Please try with the correct code",
-                                                                    MotionToastStyle.WARNING,
-                                                                    MotionToast.GRAVITY_BOTTOM,
-                                                                    MotionToast.LONG_DURATION,
-                                                                    ResourcesCompat.getFont(
-                                                                        requireActivity(),
-                                                                        www.sanju.motiontoast.R.font.helvetica_regular
-                                                                    )
-                                                                )
-                                                            }
-
-                                                        }
-                                                    }
-                                                },
-                                                {
-                                                    Log.e("MyAmplifyApp", "Query failure", it)
-                                                    dialog.dismiss()
-                                                }
-                                            )
-                                        }
-                                        binding.cn.setOnClickListener {
-                                            dialog.dismiss()
-                                        }
-                                    }
-                                }
-
                             }
                             else{
                                 binding.eventBackground.visibility = View.VISIBLE
@@ -987,209 +765,6 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
                                         }
                                     })
                                 binding.eventNamepv2.text = postId.title
-
-                                binding.e2.setOnClickListener {
-                                    if (postId.privacy && postId.members == null || postId.privacy && !postId.members.contains(n)) {
-                                        val binding = EntercodeBinding.inflate(layoutInflater)
-                                        val view = binding.root
-                                        val builder = AlertDialog.Builder(requireActivity())
-                                        builder.setView(view)
-                                        val dialog = builder.create()
-                                        dialog.show()
-                                        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-                                        dialog.setCancelable(false)
-                                        binding.snd.setOnClickListener {
-                                            hideKeyboard(it)
-                                            val code = binding.codetxt.text.toString()
-                                            Amplify.API.query(
-                                                ModelQuery.list(
-                                                    Event::class.java,
-                                                    Event.ID.contains(postId.id)
-                                                ),
-                                                { response ->
-                                                    response.data.forEach { result ->
-                                                        if (code == result.code) {
-                                                            var members = result.members
-                                                            if (members == null){
-                                                                members = mutableListOf()
-                                                                members.add(n)
-                                                                val updatedMembers =
-                                                                    result.copyOfBuilder().id(result.id)
-                                                                        .members(members)
-                                                                        .build()
-                                                                // Perform the update mutation with the modified user object
-                                                                Amplify.API.mutate(
-                                                                    ModelMutation.update(updatedMembers),
-                                                                    { updateResponse ->
-                                                                        // Handle the successful update
-                                                                        Log.i(
-                                                                            "Amplify",
-                                                                            "User updated: ${updateResponse.data}"
-                                                                        )
-                                                                        activity?.runOnUiThread {
-                                                                            dialog.dismiss()
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Enjoy the event!",
-                                                                                "You just joined the event.",
-                                                                                MotionToastStyle.SUCCESS,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                            Handler().postDelayed({
-                                                                                activity?.runOnUiThread {
-                                                                                    val bundle = Bundle()
-                                                                                    bundle.putString(
-                                                                                        "id",
-                                                                                        postId.id
-                                                                                    ) // Replace "post" with the key you want to use
-                                                                                    // Perform the fragment transaction
-                                                                                    val transaction =
-                                                                                        requireActivity().supportFragmentManager.beginTransaction()
-                                                                                    val frg = EventPage()
-                                                                                    frg.arguments = bundle
-                                                                                    transaction.replace(
-                                                                                        R.id.mn,
-                                                                                        frg
-                                                                                    )
-                                                                                    transaction.addToBackStack(
-                                                                                        null
-                                                                                    )
-                                                                                    transaction.commit()
-                                                                                }
-                                                                            }, 2000)
-                                                                        }
-
-                                                                    },
-                                                                    { error ->
-                                                                        // Handle the error
-                                                                        activity?.runOnUiThread {
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Error",
-                                                                                error.message.toString(),
-                                                                                MotionToastStyle.WARNING,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                        }
-
-                                                                    }
-                                                                )
-                                                            }
-                                                            else{
-                                                                members.add(n)
-                                                                val updatedMembers =
-                                                                    result.copyOfBuilder().id(result.id)
-                                                                        .members(members)
-                                                                        .build()
-                                                                // Perform the update mutation with the modified user object
-                                                                Amplify.API.mutate(
-                                                                    ModelMutation.update(updatedMembers),
-                                                                    { updateResponse ->
-                                                                        // Handle the successful update
-                                                                        Log.i(
-                                                                            "Amplify",
-                                                                            "User updated: ${updateResponse.data}"
-                                                                        )
-                                                                        activity?.runOnUiThread {
-                                                                            dialog.dismiss()
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Enjoy the event!",
-                                                                                "You just joined the event.",
-                                                                                MotionToastStyle.SUCCESS,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                            Handler().postDelayed({
-                                                                                activity?.runOnUiThread {
-                                                                                    val bundle = Bundle()
-                                                                                    bundle.putString(
-                                                                                        "id",
-                                                                                        postId.id
-                                                                                    ) // Replace "post" with the key you want to use
-                                                                                    // Perform the fragment transaction
-                                                                                    val transaction =
-                                                                                        requireActivity().supportFragmentManager.beginTransaction()
-                                                                                    val frg = EventPage()
-                                                                                    frg.arguments = bundle
-                                                                                    transaction.replace(
-                                                                                        R.id.mn,
-                                                                                        frg
-                                                                                    )
-                                                                                    transaction.addToBackStack(
-                                                                                        null
-                                                                                    )
-                                                                                    transaction.commit()
-                                                                                }
-                                                                            }, 2000)
-                                                                        }
-
-                                                                    },
-                                                                    { error ->
-                                                                        // Handle the error
-                                                                        activity?.runOnUiThread {
-                                                                            MotionToast.createColorToast(
-                                                                                requireActivity(),
-                                                                                "Error",
-                                                                                error.message.toString(),
-                                                                                MotionToastStyle.WARNING,
-                                                                                MotionToast.GRAVITY_BOTTOM,
-                                                                                MotionToast.LONG_DURATION,
-                                                                                ResourcesCompat.getFont(
-                                                                                    requireActivity(),
-                                                                                    www.sanju.motiontoast.R.font.helvetica_regular
-                                                                                )
-                                                                            )
-                                                                        }
-
-                                                                    }
-                                                                )
-                                                            }
-                                                        }
-                                                        else {
-                                                            activity?.runOnUiThread {
-                                                                MotionToast.createColorToast(
-                                                                    requireActivity(),
-                                                                    "The code is incorrect",
-                                                                    "Please try with the correct code",
-                                                                    MotionToastStyle.WARNING,
-                                                                    MotionToast.GRAVITY_BOTTOM,
-                                                                    MotionToast.LONG_DURATION,
-                                                                    ResourcesCompat.getFont(
-                                                                        requireActivity(),
-                                                                        www.sanju.motiontoast.R.font.helvetica_regular
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                },
-                                                {
-                                                    Log.e("MyAmplifyApp", "Query failure", it)
-                                                    dialog.dismiss()
-                                                }
-                                            )
-                                        }
-                                        binding.cn.setOnClickListener {
-                                            dialog.dismiss()
-                                        }
-                                    }
-                                }
-
                             }
                             else{
                                 binding.eventBackground2.visibility = View.VISIBLE

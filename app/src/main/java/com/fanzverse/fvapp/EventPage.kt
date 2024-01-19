@@ -2,6 +2,7 @@ package com.fanzverse.fvapp
 
 import android.R.attr.label
 import android.app.Activity
+import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -9,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -19,7 +21,9 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.res.ResourcesCompat
@@ -40,6 +44,9 @@ import com.amplifyframework.datastore.generated.model.Usr
 import com.amplifyframework.datastore.generated.model.eventPost
 import com.bumptech.glide.Glide
 import com.fanzverse.fvapp.databinding.FragmentEventPageBinding
+import com.fanzverse.fvapp.databinding.InvitelistBinding
+import com.fanzverse.fvapp.databinding.PickbgBinding
+import com.fanzverse.fvapp.databinding.ProfilesinviteBinding
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -71,7 +78,11 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
     private lateinit var binding: FragmentEventPageBinding
     var eventID: String? = null
     val n = MainActivity.userN
+    private lateinit var members : List<String>
+    private lateinit var dialog: Dialog // Declare dialog as a property
+    private lateinit var binding2: InvitelistBinding
 
+    private var users = mutableListOf<Usr>()
     var allGallery = mutableListOf<PosDataModelLite>()
     private var player: SimpleExoPlayer? = null
     var allPosts = mutableListOf<PosDataModel>()
@@ -91,6 +102,11 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding2 = InvitelistBinding.inflate(layoutInflater)
+        val view = binding2.root
+        val builder = AlertDialog.Builder(requireActivity())
+        builder.setView(view)
+        dialog = builder.create()
         getVideo = registerForActivityResult(ActivityResultContracts.GetContent(), ActivityResultCallback {
             if (it != null) {
                 Log.i("Amplifyy", "Selected video: $it")
@@ -98,14 +114,11 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
                 progressDialog.setMessage("Uploading File ...")
                 progressDialog.setCancelable(false)
                 progressDialog.show()
-
                 viewLifecycleOwner.lifecycleScope.launch {
                     try {
                         val inputStream = requireContext().contentResolver.openInputStream(it)
                         val videoFile = File(requireContext().cacheDir, "video.mp4")
-
                         val outputStream = FileOutputStream(videoFile)
-
                         inputStream?.copyTo(outputStream)
                         inputStream?.close()
                         outputStream.close()
@@ -134,7 +147,6 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
                 }
             }
         })
-
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -241,7 +253,6 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
         }
 
     }
-
     fun fetch(id:String){
         Amplify.API.query(
             ModelQuery.list(Event::class.java, Event.ID.contains(id)),
@@ -249,6 +260,9 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
                 val sortedPosts = postResponse.data.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
                 // Get the post IDs of the first three posts
                 sortedPosts.forEach { postId ->
+                    members = postId.members
+                    Log.e("DQSDQDQZDQDZQD", members.toString())
+
                     activity?.runOnUiThread {
                         Glide.with(this)
                             .load(postId.background) // Replace with the resource or URL of your image
@@ -278,7 +292,6 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
             }
         )
     }
-
     fun formatDate(inputDate: String): String {
         val inputFormat = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
         val outputFormat = SimpleDateFormat("EEE dd MMM", Locale.getDefault())
@@ -382,7 +395,6 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
             binding.mainRecyclerview.adapter?.notifyDataSetChanged()
         }
     }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
@@ -431,7 +443,6 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
             Toast.makeText(activity, "Task Cancelled", Toast.LENGTH_SHORT).show()
         }
     }
-
     private suspend fun cmt(postId: String): MutableList<Comment> {
         val comments = mutableListOf<Comment>()
         val deferred = CompletableDeferred<MutableList<Comment>>() // Create a CompletableDeferred
@@ -510,7 +521,6 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
 
         return deferred.await() // Suspend until the deferred is completed and return the pfp
     }
-
     fun createPost(username: String, content: String, typ:String) {
         // Create an instance of OkHttpClient
         val client = OkHttpClient()
@@ -662,7 +672,6 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
             }
         )
     }
-
     fun fetchAlbum(){
         binding.albumview.visibility = View.VISIBLE
         binding.postview.visibility = View.GONE
@@ -693,7 +702,7 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
         val popupMenu = PopupMenu(requireContext(), view)
         if (case == 0){
             // Add menu items using a list
-            val menuItems = listOf("Delete Event","Copy Code")
+            val menuItems = listOf("Delete Event","Invite Members")
 
             for ((index, title) in menuItems.withIndex()) {
                 popupMenu.menu.add(0, index, index, title)
@@ -724,14 +733,42 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
 
                             true
                         } else {
+                            MotionToast.createColorToast(
+                                requireActivity(),
+                                "Access Denied",
+                                "Only Organizer has access",
+                                MotionToastStyle.WARNING,
+                                MotionToast.GRAVITY_BOTTOM,
+                                MotionToast.LONG_DURATION,
+                                ResourcesCompat.getFont(
+                                    requireActivity(),
+                                    www.sanju.motiontoast.R.font.helvetica_regular
+                                )
+                            )
                             false
                         }
                     }
                     1 -> {
-                        copyToClipboard(code)
-                        true
-                        // Handle Item 2 click
+                        if (n == organiser) {
+                            Log.e("DQSDQDQZDQDZQD", "2${members}")
+                            inviteMembers("",members)
 
+                        } else {
+                            MotionToast.createColorToast(
+                                requireActivity(),
+                                "Access Denied",
+                                "Only Organizer has access",
+                                MotionToastStyle.WARNING,
+                                MotionToast.GRAVITY_BOTTOM,
+                                MotionToast.LONG_DURATION,
+                                ResourcesCompat.getFont(
+                                    requireActivity(),
+                                    www.sanju.motiontoast.R.font.helvetica_regular
+                                )
+                            )
+                        }
+                        // Handle Item 2 click
+                        true
                     }
                     // Add more cases for other items as needed
                     else -> false
@@ -743,7 +780,7 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
         }
         else if(case == 1){
             // Add menu items using a list
-            val menuItems = listOf("Delete Event","Copy Code")
+            val menuItems = listOf("Delete Event","Invite Members")
 
             for ((index, title) in menuItems.withIndex()) {
                 popupMenu.menu.add(0, index, index, title)
@@ -771,13 +808,26 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
                                 }
 
                             sweetAlertDialog.show()
-                            true
+                            false
                         } else {
+                            MotionToast.createColorToast(
+                                requireActivity(),
+                                "Access Denied",
+                                "Only Organizer has access",
+                                MotionToastStyle.WARNING,
+                                MotionToast.GRAVITY_BOTTOM,
+                                MotionToast.LONG_DURATION,
+                                ResourcesCompat.getFont(
+                                    requireActivity(),
+                                    www.sanju.motiontoast.R.font.helvetica_regular
+                                )
+                            )
                             false
                         }
                     }
                     1 -> {
-                        copyToClipboard(code)
+                        Log.e("DQSDQDQZDQDZQD", "2${members}")
+                        inviteMembers("",members)
                         true
                         // Handle Item 2 click
 
@@ -822,6 +872,18 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
                             sweetAlertDialog.show()
                             true
                         } else {
+                            MotionToast.createColorToast(
+                                requireActivity(),
+                                "Access Denied",
+                                "Only Organizer has access",
+                                MotionToastStyle.WARNING,
+                                MotionToast.GRAVITY_BOTTOM,
+                                MotionToast.LONG_DURATION,
+                                ResourcesCompat.getFont(
+                                    requireActivity(),
+                                    www.sanju.motiontoast.R.font.helvetica_regular
+                                )
+                            )
                             false
                         }
                     }
@@ -877,5 +939,206 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
 
 
     }
+    fun inviteMembers(id: String,Members:List<String>) {
+        users.clear()
+        binding2.mainRecyclerview.adapter?.notifyDataSetChanged()
+        Amplify.API.query(
+            ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    users.add(post)
+                    activity?.runOnUiThread {
+                        dialog.show()
+                        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                        dialog.setCancelable(false)
+                        binding2.mainRecyclerview.apply {
+                            layoutManager = LinearLayoutManager(this.context)
+                            adapter = InviteAdapter(requireContext(), users, Members).apply {
+                                setOnItemClickListener(object : InviteAdapter.onItemClickListener {
+                                    override fun onItemClick(position: Int) {
 
+                                    }
+
+                                    override fun onAddClick(position: Int) {
+                                        val user = users[position].username
+                                        addMember(user)
+                                    }
+                                })
+                            }
+                        }
+                        var searchHandler: Handler? = null
+                        binding2.srchv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                            override fun onQueryTextSubmit(query: String?): Boolean {
+                                return true
+                            }
+                            override fun onQueryTextChange(newText: String?): Boolean {
+                                searchHandler?.removeCallbacksAndMessages(null)
+                                searchHandler = Handler()
+                                if (!newText.isNullOrBlank()) {
+                                    // Delayed search when there is a non-empty query
+                                    searchHandler?.postDelayed({
+                                        fetchR(newText.toLowerCase())
+                                    }, 300) // Adjust the delay as needed
+                                }else{
+                                    fetchR("")
+                                }
+                                return true
+                            }
+                        })
+                        binding2.exit.setOnClickListener {
+                            dialog.dismiss()
+                        }
+                    }
+                }
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
+
+    }
+    fun fetchR(id: String) {
+        users.clear()
+        Amplify.API.query(
+            ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
+            { postResponse ->
+                postResponse.data.forEach { post ->
+                    users.add(post)
+                    activity?.runOnUiThread {
+                        // Notify the adapter that the data has changed
+                        binding2.mainRecyclerview.adapter?.notifyDataSetChanged()
+                    }
+                }
+            },
+            { postError ->
+                Log.e("MyAmplifyApp", "Query post failure", postError)
+            }
+        )
+    }
+
+    fun addMember(id:String){
+        Amplify.API.query(
+            ModelQuery.list(
+                Event::class.java,
+                Event.ID.contains(eventID)
+            ),
+            { response ->
+                response.data.forEach { result ->
+                    var members2 = result.members
+                    if (members2 == null){
+                        members2 = mutableListOf()
+                        members2.add(id)
+                        val updatedMembers =
+                            result.copyOfBuilder().id(result.id)
+                                .members(members2)
+                                .build()
+                        // Perform the update mutation with the modified user object
+                        Amplify.API.mutate(
+                            ModelMutation.update(updatedMembers),
+                            { updateResponse ->
+                                members = updateResponse.data.members
+
+                                // Handle the successful update
+                                Log.i(
+                                    "Amplify",
+                                    "User updated: ${updateResponse.data}"
+                                )
+                                activity?.runOnUiThread {
+                                    dialog.dismiss()
+                                    MotionToast.createColorToast(
+                                        requireActivity(),
+                                        "Member added successfully",
+                                        "User now has access to the event!",
+                                        MotionToastStyle.SUCCESS,
+                                        MotionToast.GRAVITY_BOTTOM,
+                                        MotionToast.LONG_DURATION,
+                                        ResourcesCompat.getFont(
+                                            requireActivity(),
+                                            www.sanju.motiontoast.R.font.helvetica_regular
+                                        )
+                                    )
+                                }
+
+                            },
+                            { error ->
+                                // Handle the error
+                                activity?.runOnUiThread {
+                                    MotionToast.createColorToast(
+                                        requireActivity(),
+                                        "Error",
+                                        error.message.toString(),
+                                        MotionToastStyle.WARNING,
+                                        MotionToast.GRAVITY_BOTTOM,
+                                        MotionToast.LONG_DURATION,
+                                        ResourcesCompat.getFont(
+                                            requireActivity(),
+                                            www.sanju.motiontoast.R.font.helvetica_regular
+                                        )
+                                    )
+                                }
+
+                            }
+                        )
+                    }
+                    else{
+                        members2.add(id)
+                        val updatedMembers =
+                            result.copyOfBuilder().id(result.id)
+                                .members(members2)
+                                .build()
+                        // Perform the update mutation with the modified user object
+                        Amplify.API.mutate(
+                            ModelMutation.update(updatedMembers),
+                            { updateResponse ->
+                                members = updateResponse.data.members
+                                // Handle the successful update
+                                Log.i(
+                                    "Amplify",
+                                    "User updated: ${updateResponse.data}"
+                                )
+                                activity?.runOnUiThread {
+                                    dialog.dismiss()
+                                    MotionToast.createColorToast(
+                                        requireActivity(),
+                                        "Member added successfully",
+                                        "User now has access to the event!",
+                                        MotionToastStyle.SUCCESS,
+                                        MotionToast.GRAVITY_BOTTOM,
+                                        MotionToast.LONG_DURATION,
+                                        ResourcesCompat.getFont(
+                                            requireActivity(),
+                                            www.sanju.motiontoast.R.font.helvetica_regular
+                                        )
+                                    )
+                                }
+
+                            },
+                            { error ->
+                                // Handle the error
+                                activity?.runOnUiThread {
+                                    MotionToast.createColorToast(
+                                        requireActivity(),
+                                        "Error",
+                                        error.message.toString(),
+                                        MotionToastStyle.WARNING,
+                                        MotionToast.GRAVITY_BOTTOM,
+                                        MotionToast.LONG_DURATION,
+                                        ResourcesCompat.getFont(
+                                            requireActivity(),
+                                            www.sanju.motiontoast.R.font.helvetica_regular
+                                        )
+                                    )
+                                }
+
+                            }
+                        )
+                    }
+                }
+            },
+            {
+                Log.e("MyAmplifyApp", "Query failure", it)
+                dialog.dismiss()
+            }
+        )
+    }
 }

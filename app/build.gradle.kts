@@ -83,9 +83,6 @@ dependencies {
     //Time
     implementation ("com.squareup.okhttp3:okhttp:4.9.1")
 
-    //Fading
-    implementation ("com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0")
-
     //Dialog
     implementation ("com.github.f0ris.sweetalert:library:1.6.2")
 
