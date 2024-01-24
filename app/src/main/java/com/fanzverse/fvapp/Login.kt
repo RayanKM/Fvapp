@@ -87,6 +87,8 @@ class Login : AppCompatActivity() {
                     {runOnUiThread {
                         Log.d("sqdqdsq", it.localizedMessage!!)
                         showToast("Failed to sign in: $it")
+                        Log.e("sqdqzdqdzqdq", "SUIIIIII ${it}")
+
                     } }
                 )
                 // Sign in the user using the entered email and password

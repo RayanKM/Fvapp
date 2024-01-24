@@ -32,6 +32,7 @@
                     android:layout_height="match_parent"
                     android:textColor="@color/black"
                     android:text="Mor\n03 jan"
+                    android:autoSizeMinTextSize="2dp"
                     android:autoSizeTextType="uniform"/>
 
             </androidx.cardview.widget.CardView>

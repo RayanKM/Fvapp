@@ -60,13 +60,16 @@ import java.util.UUID
 class Home : Fragment(R.layout.fragment_home) {
     private var player: SimpleExoPlayer? = null
     var allPosts = mutableListOf<PosDataModel>()
+    var allPosts2 = mutableListOf<PosDataModel>()
     var videoUrlLiveData = MutableLiveData<String>()
     var downloadUri : String? = null?:""
     var tp : String? = null?:""
     lateinit var getVideo : ActivityResultLauncher<String>
     private var postListWithComments = mutableListOf<PosDataModel>()
+    private var postListWithComments2 = mutableListOf<PosDataModel>()
     private lateinit var communicator: Communicator
     private lateinit var binding: FragmentHomeBinding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -142,10 +145,26 @@ class Home : Fragment(R.layout.fragment_home) {
                             val post = postListWithComments[position]
                             communicator.passid(post.postID, post.postAuthor)
                         }
-
                         override fun onLike(position: Int) {
                             val postid = postListWithComments[position].postID
                             val to = postListWithComments[position].postAuthor
+                            likePost(n!!,postid,to)
+                            // Notify the adapter that the data has changed
+                        }
+                    })
+                }
+            }
+            binding.mainRecyclerH2.apply {
+                layoutManager = LinearLayoutManager(this.context)
+                adapter = HomeAdapter(requireContext(), postListWithComments2).apply {
+                    setOnItemClickListener(object : HomeAdapter.onItemClickListener {
+                        override fun onItemClick(position: Int) {
+                            val post = postListWithComments2[position]
+                            communicator.passid(post.postID, post.postAuthor)
+                        }
+                        override fun onLike(position: Int) {
+                            val postid = postListWithComments2[position].postID
+                            val to = postListWithComments2[position].postAuthor
                             likePost(n!!,postid,to)
                             // Notify the adapter that the data has changed
                         }
@@ -156,14 +175,17 @@ class Home : Fragment(R.layout.fragment_home) {
         binding.Navbt2.setOnItemSelectedListener {
             when (it) {
                 R.id.Foryou -> {
+                    binding.mainRecyclerH2.visibility = View.GONE
+                    binding.mainRecyclerview.visibility = View.VISIBLE
                     fetchPostsForYou()
                 }
                 R.id.Following -> {
+                    binding.mainRecyclerview.visibility = View.GONE
+                    binding.mainRecyclerH2.visibility = View.VISIBLE
                     fetchAll(n!!)
                 }
             }
         }
-
         binding.publish.setOnClickListener {
             val author = MainActivity.userN
             val content = binding.posttext.text.toString()
@@ -204,12 +226,18 @@ class Home : Fragment(R.layout.fragment_home) {
                     player?.play()
                 }
             })
-
         }
     }
     fun fetchAll(id: String) {
+        allPosts2.clear()
+        postListWithComments2.clear()
+        postListWithComments2.addAll(allPosts2)
 
-        allPosts.clear()
+        activity?.runOnUiThread {
+            // Notify the adapter that the data has changed
+            binding.mainRecyclerH2.adapter?.notifyDataSetChanged()
+        }
+
         Amplify.API.query(
             ModelQuery.list(Usr::class.java, Usr.USERNAME.contains(id)),
             { response ->
@@ -230,7 +258,6 @@ class Home : Fragment(R.layout.fragment_home) {
     }
     fun fetchPostsForUser(username: String) {
         Log.e("MyAmplifyApp5", "$username")
-
         Amplify.API.query(
             ModelQuery.list(Post::class.java, Post.AUTHOR.contains(username)),
             { postResponse ->
@@ -250,8 +277,16 @@ class Home : Fragment(R.layout.fragment_home) {
                         val pf = async { getPfp(username) }
 
                         val postWithComments = PosDataModel(postContent, postAuthor, postId, postMedia, pf.await(), postType, timeAgo, cm.await(), lk.await(), postDate)
-                        allPosts.add(postWithComments)
-                        updateUI(allPosts)
+                        allPosts2.add(postWithComments)
+                        val sortedPosts = allPosts2.sortedByDescending { it.sort }
+
+                        postListWithComments2.clear()
+                        postListWithComments2.addAll(sortedPosts)
+
+                        activity?.runOnUiThread {
+                            // Notify the adapter that the data has changed
+                            binding.mainRecyclerH2.adapter?.notifyDataSetChanged()
+                        }
                     }
                 }
                 Log.e("MyAmplifyApp5", "afterpost")
@@ -263,6 +298,8 @@ class Home : Fragment(R.layout.fragment_home) {
     }
     fun fetchPostsForYou() {
         allPosts.clear()
+        updateUI(allPosts)
+
         Amplify.API.query(
             ModelQuery.list(Post::class.java, Post.MEDIA.contains("https")),
             { postResponse ->
@@ -609,5 +646,9 @@ class Home : Fragment(R.layout.fragment_home) {
     fun hideKeyboard(view: View) {
         val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+    override fun onResume() {
+        super.onResume()
+        binding.Navbt2.setItemSelected(R.id.Foryou)
     }
 }

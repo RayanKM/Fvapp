@@ -311,9 +311,11 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
         endDate: String,
         endTime: String
     ): Any {
-        val dateFormat = SimpleDateFormat("dd MMM, yyyy HH:mm", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("dd MMM, yyyy HH:mm", Locale.ENGLISH)
 
         val currentDate = Date()
+        Log.e("dzadazdazdadazd", "$startDate $startTime")
+
         val startDateFormatted = dateFormat.parse("$startDate $startTime")
         val endDateFormatted = dateFormat.parse("$endDate $endTime")
 
@@ -971,6 +973,7 @@ class EventPage : Fragment(R.layout.fragment_event_page) {
                             override fun onQueryTextSubmit(query: String?): Boolean {
                                 return true
                             }
+
                             override fun onQueryTextChange(newText: String?): Boolean {
                                 searchHandler?.removeCallbacksAndMessages(null)
                                 searchHandler = Handler()

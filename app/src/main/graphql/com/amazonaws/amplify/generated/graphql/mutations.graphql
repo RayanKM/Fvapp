@@ -271,6 +271,7 @@ mutation CreateEvent(
     endTime
     privacy
     code
+    genCode
     settings
     members
     background
@@ -297,6 +298,7 @@ mutation UpdateEvent(
     endTime
     privacy
     code
+    genCode
     settings
     members
     background
@@ -323,6 +325,7 @@ mutation DeleteEvent(
     endTime
     privacy
     code
+    genCode
     settings
     members
     background

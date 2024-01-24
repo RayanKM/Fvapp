@@ -174,7 +174,10 @@ class Events : Fragment(R.layout.fragment_events) {
             ModelQuery.list(Event::class.java, Event.BACKGROUND.contains("https")),
             { postResponse ->
                 allPosts.clear()
-                binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+                activity?.runOnUiThread {
+                    // Notify the adapter that the data has changed
+                    binding.mainRecyclerview.adapter?.notifyDataSetChanged()
+                }
                 val sortedPosts = postResponse.data.sortedByDescending { it.createdAt } // Sort by createdAt in descending order
                 // Get the post IDs of the first three posts
                 sortedPosts.forEach { postId ->

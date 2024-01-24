@@ -184,6 +184,7 @@ query GetEvent($id: ID!) {
     endTime
     privacy
     code
+    genCode
     settings
     members
     background
@@ -212,6 +213,7 @@ query ListEvents(
       endTime
       privacy
       code
+      genCode
       settings
       members
       background

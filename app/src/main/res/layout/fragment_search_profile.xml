@@ -241,6 +241,7 @@
                                         android:layout_height="match_parent"
                                         android:textColor="@color/black"
                                         android:text=""
+                                        android:autoSizeMinTextSize="2dp"
                                         android:autoSizeTextType="uniform"/>
 
                                 </androidx.cardview.widget.CardView>
@@ -330,6 +331,7 @@
                                         android:layout_height="match_parent"
                                         android:textColor="@color/black"
                                         android:text=""
+                                        android:autoSizeMinTextSize="2dp"
                                         android:autoSizeTextType="uniform"/>
 
                                 </androidx.cardview.widget.CardView>
@@ -743,32 +745,6 @@
                             android:theme="@style/SCBSwitch"
                             android:thumb="@drawable/thumb"
                             app:track="@drawable/track"/>
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/LoginTextInputOuterFieldStyle"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginHorizontal="16dp"
-                            app:boxStrokeColor="@color/selector3"
-                            app:hintTextColor="#737272"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            android:textColorHint="#737272"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/sd">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/eventCode"
-                                android:visibility="gone"
-                                style="@style/LoginTextInputInnerFieldStyle"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColorHint="#737272"
-                                android:textColor="@color/black"
-                                android:textAllCaps="true"
-                                android:hint="Event Code"
-                                android:inputType="text" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
                     <TextView

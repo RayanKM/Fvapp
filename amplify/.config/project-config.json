@@ -1,13 +1,9 @@
 {
-  "projectName": "S14app",
-  "version": "3.1",
-  "frontend": "android",
-  "android": {
+  "frontend": "javascript",
+  "javascript": {
+    "framework": "none",
     "config": {
-      "ResDir": "app/src/main/res"
+      "SourceDir": "amplify-codegen-temp"
     }
-  },
-  "providers": [
-    "awscloudformation"
-  ]
+  }
 }

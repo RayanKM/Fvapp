@@ -70,7 +70,6 @@ import java.util.Locale
 import java.util.TimeZone
 import java.util.UUID
 
-
 class SearchProfile : Fragment(R.layout.fragment_search_profile) {
     private lateinit var communicator: Communicator
     private lateinit var dialog: Dialog // Declare dialog as a property
@@ -286,11 +285,8 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
                 // Handle the switch state change
                 if (isChecked) {
                     binding.privacySwitch.text = "Private    "
-                    binding.eventCode.visibility = View.VISIBLE
                 } else {
                     binding.privacySwitch.text = "Public    "
-                    binding.eventCode.setText("")
-                    binding.eventCode.visibility = View.GONE
                 }
             }
             binding.settingsSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -346,7 +342,7 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
                         val privacy: Boolean = binding.privacySwitch.isChecked
                         val settings: Boolean = binding.settingsSwitch.isChecked
                         if (privacy){
-                            crtEvent(n!!,binding.title.text.toString(),binding.desc.text.toString(),binding.location.text.toString(),binding.Startdate.text.toString(),binding.Starttime.text.toString(),binding.Enddate.text.toString(),binding.Endtime.text.toString(),privacy,binding.eventCode.text.toString(),settings,backgroundURL)
+                            crtEvent(n!!,binding.title.text.toString(),binding.desc.text.toString(),binding.location.text.toString(),binding.Startdate.text.toString(),binding.Starttime.text.toString(),binding.Enddate.text.toString(),binding.Endtime.text.toString(),privacy,"",settings,backgroundURL)
                         }else{
                             crtEvent(n!!,binding.title.text.toString(),binding.desc.text.toString(),binding.location.text.toString(),binding.Startdate.text.toString(),binding.Starttime.text.toString(),binding.Enddate.text.toString(),binding.Endtime.text.toString(),privacy,"",settings,backgroundURL)
                         }
@@ -811,7 +807,6 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
         )
 
     }
-
     fun formatDate(inputDate: String): String {
         val inputFormat = SimpleDateFormat("dd MMM, yyyy", Locale.getDefault())
         val outputFormat = SimpleDateFormat("EEE dd MMM", Locale.getDefault())
@@ -825,7 +820,6 @@ class SearchProfile : Fragment(R.layout.fragment_search_profile) {
 
         return inputDate // Return the original input if parsing fails
     }
-
     fun Vidimg(url:String, nm:Int){
         val retriever = MediaMetadataRetriever()
         retriever.setDataSource(url, HashMap())
